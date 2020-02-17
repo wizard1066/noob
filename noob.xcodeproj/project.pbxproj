@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,6 +13,12 @@
 		7BAAFE5023F68CC000B275CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7BAAFE4F23F68CC000B275CE /* Assets.xcassets */; };
 		7BAAFE5323F68CC000B275CE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7BAAFE5223F68CC000B275CE /* Preview Assets.xcassets */; };
 		7BAAFE5623F68CC000B275CE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7BAAFE5423F68CC000B275CE /* LaunchScreen.storyboard */; };
+		7BAAFE5E23F6ACBD00B275CE /* LocalNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAAFE5D23F6ACBD00B275CE /* LocalNotifications.swift */; };
+		7BAAFE6123F6D22100B275CE /* RemoteNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAAFE6023F6D22100B275CE /* RemoteNotifications.swift */; };
+		7BAAFE6423F6DFCE00B275CE /* SwiftJWT in Frameworks */ = {isa = PBXBuildFile; productRef = 7BAAFE6323F6DFCE00B275CE /* SwiftJWT */; };
+		7BAAFE6723FAB96400B275CE /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BAAFE6623FAB96400B275CE /* CloudKit.framework */; };
+		7BAAFE6923FAC37D00B275CE /* Cloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAAFE6823FAC37D00B275CE /* Cloud.swift */; };
+		7BAAFE6B23FAC49800B275CE /* RSA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAAFE6A23FAC49800B275CE /* RSA.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +30,12 @@
 		7BAAFE5223F68CC000B275CE /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		7BAAFE5523F68CC000B275CE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		7BAAFE5723F68CC000B275CE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7BAAFE5D23F6ACBD00B275CE /* LocalNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNotifications.swift; sourceTree = SOURCE_ROOT; };
+		7BAAFE5F23F6D12A00B275CE /* noob.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = noob.entitlements; sourceTree = "<group>"; };
+		7BAAFE6023F6D22100B275CE /* RemoteNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteNotifications.swift; sourceTree = SOURCE_ROOT; };
+		7BAAFE6623FAB96400B275CE /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
+		7BAAFE6823FAC37D00B275CE /* Cloud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cloud.swift; sourceTree = "<group>"; };
+		7BAAFE6A23FAC49800B275CE /* RSA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RSA.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +43,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7BAAFE6423F6DFCE00B275CE /* SwiftJWT in Frameworks */,
+				7BAAFE6723FAB96400B275CE /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -42,6 +56,7 @@
 			children = (
 				7BAAFE4823F68CBD00B275CE /* noob */,
 				7BAAFE4723F68CBD00B275CE /* Products */,
+				7BAAFE6523FAB96400B275CE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -56,7 +71,12 @@
 		7BAAFE4823F68CBD00B275CE /* noob */ = {
 			isa = PBXGroup;
 			children = (
+				7BAAFE5F23F6D12A00B275CE /* noob.entitlements */,
+				7BAAFE6823FAC37D00B275CE /* Cloud.swift */,
+				7BAAFE6A23FAC49800B275CE /* RSA.swift */,
 				7BAAFE4923F68CBD00B275CE /* AppDelegate.swift */,
+				7BAAFE5D23F6ACBD00B275CE /* LocalNotifications.swift */,
+				7BAAFE6023F6D22100B275CE /* RemoteNotifications.swift */,
 				7BAAFE4B23F68CBD00B275CE /* SceneDelegate.swift */,
 				7BAAFE4D23F68CBD00B275CE /* ContentView.swift */,
 				7BAAFE4F23F68CC000B275CE /* Assets.xcassets */,
@@ -75,6 +95,14 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		7BAAFE6523FAB96400B275CE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				7BAAFE6623FAB96400B275CE /* CloudKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -91,6 +119,9 @@
 			dependencies = (
 			);
 			name = noob;
+			packageProductDependencies = (
+				7BAAFE6323F6DFCE00B275CE /* SwiftJWT */,
+			);
 			productName = noob;
 			productReference = 7BAAFE4623F68CBD00B275CE /* noob.app */;
 			productType = "com.apple.product-type.application";
@@ -119,6 +150,9 @@
 				Base,
 			);
 			mainGroup = 7BAAFE3D23F68CBD00B275CE;
+			packageReferences = (
+				7BAAFE6223F6DFCE00B275CE /* XCRemoteSwiftPackageReference "Swift-JWT" */,
+			);
 			productRefGroup = 7BAAFE4723F68CBD00B275CE /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -146,9 +180,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7BAAFE6123F6D22100B275CE /* RemoteNotifications.swift in Sources */,
+				7BAAFE5E23F6ACBD00B275CE /* LocalNotifications.swift in Sources */,
 				7BAAFE4A23F68CBD00B275CE /* AppDelegate.swift in Sources */,
 				7BAAFE4C23F68CBD00B275CE /* SceneDelegate.swift in Sources */,
+				7BAAFE6B23FAC49800B275CE /* RSA.swift in Sources */,
 				7BAAFE4E23F68CBD00B275CE /* ContentView.swift in Sources */,
+				7BAAFE6923FAC37D00B275CE /* Cloud.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,6 +322,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = noob/noob.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"noob/Preview Content\"";
 				DEVELOPMENT_TEAM = CWGS87U262;
@@ -304,6 +343,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = noob/noob.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"noob/Preview Content\"";
 				DEVELOPMENT_TEAM = CWGS87U262;
@@ -342,6 +382,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7BAAFE6223F6DFCE00B275CE /* XCRemoteSwiftPackageReference "Swift-JWT" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/IBM-Swift/Swift-JWT";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.6.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7BAAFE6323F6DFCE00B275CE /* SwiftJWT */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7BAAFE6223F6DFCE00B275CE /* XCRemoteSwiftPackageReference "Swift-JWT" */;
+			productName = SwiftJWT;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7BAAFE3E23F68CBD00B275CE /* Project object */;
 }
