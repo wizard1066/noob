@@ -15,109 +15,72 @@ let poster = RemoteNotifications()
 let rsa = RSA()
 let cloud = Cloud()
 
+class ContentMode {
+
+  struct userObject {
+    var name: String
+    var publicK: String?
+    var privateK: String?
+    
+    init(user: String, privateK: String?, publicK: String?) {
+      self.name = user
+      self.privateK = privateK
+      self.publicK = publicK
+    }
+  }
+  
+  @Published var people: [userObject] = []
+}
 
 
 struct ContentView: View {
-  @State var yourBindingHere = ""
+//  @State var yourBindingHere = ""
   @State var yourMessageHere = ""
-  @State var colors = ["Red", "Green", "Blue", "Tartan"]
+  // This is cheating really, we should use binding
+  @State var users = ["","","","","","","",""]
   @State var selected2 = 0
-  @State var selected = 0 {
-    didSet {
-      cloud.search(name: colors[selected])
-    }
-  }
-  @State var typing = false
+  @State var selected = 0
+//  @State var typing = false
   @State var output:String = "" {
     didSet {
       print("You send \(output)")
     }
   }
+  @State var index = 0
   
-    var body: some View {
-      VStack {
-//        if !typing {
-//          if !output.isEmpty {
-//            Text("You typed \(output)")
-//
-//          } else {
-//            if !yourBindingHere.isEmpty {
-//              Text("You are typing \(yourBindingHere)")
-//            }
-//          }
-//        }
-//          TextField("Login", text: $yourBindingHere, onEditingChanged: {
-//            self.typing = $0
-//          }, onCommit: {
-//            self.output = self.yourBindingHere
-//          })
-//            .textFieldStyle(RoundedBorderTextFieldStyle())
-//            Button(action: {
-//                  // register public key
-//                    }) {
-//                      Text("login")
-//                    }
-        Picker(selection: $selected, label: Text("Address")) {
-                   ForEach(0 ..< colors.count) {
-                      Text(self.colors[$0])
-                   }
-                }.onTapGesture {
-                  cloud.search(name: self.colors[self.selected])
-                  }.pickerStyle(WheelPickerStyle())
-                   .padding()
-//                Text("You selected: \(colors[selected])")
-//                Button(action: {
-//                // register public key
-//                  }) {
-//                    Text("send")
-//                  }
-          TextField("Message", text: $yourMessageHere, onCommit: {
-            self.output = self.yourMessageHere
-          })
-              .textFieldStyle(RoundedBorderTextFieldStyle())
-              .padding()
-          Picker(selection: $selected2.onChange({ (row) in
-            cloud.search(name: self.colors[row])
-            }), label: Text("Addresse")) {
-             ForEach(0 ..< colors.count) {
-                Text(self.colors[$0])
-             }
-          }.pickerStyle(WheelPickerStyle())
-           .padding()
-//          Text("You selected: \(colors[selected])")
-//          Button(action: {
-//          // register public key
-//            }) {
-//              Text("send")
-//            }
-      }
-//        Button(action: {
-//          notify.doNotification()
-//        }) {
-//          Text("local")
-//        }
-//        Button(action: {
-//          poster.postNotification()
-//        }) {
-//          Text("remote")
-//        }
-//        Button(action: {
-//          let success : Bool = (rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob"))
-//          if (!success) {
-//            print("Failed")
-//            return
-//          }
-//          let test : String = poster.token
-//          let encryption = rsa.encryptBase64(text: test)
-//          print(encryption)
-//          let decription = rsa.decpryptBase64(encrpted: encryption)
-//          print(decription)
-//        }) {
-//          Text("keys")
-//        }
-
+  var body: some View {
+    VStack {
+      Picker(selection: $selected.onChange({ (row) in
+        cloud.search(name: self.users[row])
+      }), label: Text("Address")) {
+        ForEach(0 ..< users.count) {
+          Text(self.users[$0])
+        }
+      }.pickerStyle(WheelPickerStyle())
+        .padding().onReceive(pingPublisher) { (data) in
+          self.users[self.index] = data
+          if self.index < self.users.count - 1 {
+            self.index = self.index + 1
+          } else {
+            self.index = 0
+          }
+        }
+      TextField("Message", text: $yourMessageHere, onCommit: {
+        self.output = self.yourMessageHere
+      })
+        .textFieldStyle(RoundedBorderTextFieldStyle())
+        .padding()
+      Picker(selection: $selected2.onChange({ (row) in
+        cloud.search(name: self.users[row])
+      }), label: Text("Addresse")) {
+        ForEach(0 ..< users.count) {
+          Text(self.users[$0])
+        }
+      }.pickerStyle(WheelPickerStyle())
+        .padding()
       
     }
+  }
 }
 
 extension Binding {

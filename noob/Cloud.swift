@@ -8,15 +8,21 @@
 
 import Foundation
 import CloudKit
+import Combine
+
+let pingPublisher = PassthroughSubject<String, Never>()
 
 class Cloud: NSObject {
 
   var publicDB:CKDatabase!
   var privateDB: CKDatabase!
+  var contentModel = ContentMode()
 
   override init() {
+    super.init()
     publicDB = CKContainer.default().publicCloudDatabase
     privateDB = CKContainer.default().privateCloudDatabase
+    self.getDirectory()
   }
   
   func search(name: String) {
@@ -35,8 +41,9 @@ class Cloud: NSObject {
                       guard let results = results else { return }
                       for result in results {
                         print("results ",result)
-
+                        
                       }
+                      
                       if results.count == 0 {
                         print("no name ",name)
                       }
@@ -58,6 +65,13 @@ class Cloud: NSObject {
                       guard let results = results else { return }
                       for result in results {
                         print("results ",result)
+                        let name = result.object(forKey: "name") as? String
+//                        var rex = ContentMode.userObject()
+//                        rex.name = name as? String
+//                        self!.contentModel.users.append(rex)
+                        DispatchQueue.main.async {
+                          pingPublisher.send(name!)
+                        }
                       }
     }
   }
