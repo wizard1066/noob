@@ -8,10 +8,12 @@
 
 import SwiftUI
 import AVFoundation
+import Combine
 
 let notify = LocalNotifications()
 let poster = RemoteNotifications()
 let rsa = RSA()
+let cloud = Cloud()
 
 
 
@@ -19,30 +21,75 @@ struct ContentView: View {
   @State var yourBindingHere = ""
   @State var yourMessageHere = ""
   @State var colors = ["Red", "Green", "Blue", "Tartan"]
-  @State var selected = 0
+  @State var selected2 = 0
+  @State var selected = 0 {
+    didSet {
+      cloud.search(name: colors[selected])
+    }
+  }
+  @State var typing = false
+  @State var output:String = "" {
+    didSet {
+      print("You send \(output)")
+    }
+  }
   
     var body: some View {
       VStack {
-          TextField("Login", text: $yourBindingHere)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
-            Button(action: {
-                  // register public key
-                    }) {
-                      Text("login")
-                    }
-          TextField("Message", text: $yourMessageHere)
+//        if !typing {
+//          if !output.isEmpty {
+//            Text("You typed \(output)")
+//
+//          } else {
+//            if !yourBindingHere.isEmpty {
+//              Text("You are typing \(yourBindingHere)")
+//            }
+//          }
+//        }
+//          TextField("Login", text: $yourBindingHere, onEditingChanged: {
+//            self.typing = $0
+//          }, onCommit: {
+//            self.output = self.yourBindingHere
+//          })
+//            .textFieldStyle(RoundedBorderTextFieldStyle())
+//            Button(action: {
+//                  // register public key
+//                    }) {
+//                      Text("login")
+//                    }
+        Picker(selection: $selected, label: Text("Address")) {
+                   ForEach(0 ..< colors.count) {
+                      Text(self.colors[$0])
+                   }
+                }.onTapGesture {
+                  cloud.search(name: self.colors[self.selected])
+                  }.pickerStyle(WheelPickerStyle())
+                   .padding()
+//                Text("You selected: \(colors[selected])")
+//                Button(action: {
+//                // register public key
+//                  }) {
+//                    Text("send")
+//                  }
+          TextField("Message", text: $yourMessageHere, onCommit: {
+            self.output = self.yourMessageHere
+          })
               .textFieldStyle(RoundedBorderTextFieldStyle())
-          Picker(selection: $selected, label: Text("Addresse")) {
+              .padding()
+          Picker(selection: $selected2.onChange({ (row) in
+            cloud.search(name: self.colors[row])
+            }), label: Text("Addresse")) {
              ForEach(0 ..< colors.count) {
                 Text(self.colors[$0])
              }
-          }
-          Text("You selected: \(colors[selected])")
-          Button(action: {
-          // register public key
-            }) {
-              Text("send")
-            }
+          }.pickerStyle(WheelPickerStyle())
+           .padding()
+//          Text("You selected: \(colors[selected])")
+//          Button(action: {
+//          // register public key
+//            }) {
+//              Text("send")
+//            }
       }
 //        Button(action: {
 //          notify.doNotification()
@@ -70,6 +117,17 @@ struct ContentView: View {
 //        }
 
       
+    }
+}
+
+extension Binding {
+    func onChange(_ handler: @escaping (Value) -> Void) -> Binding<Value> {
+        return Binding(
+            get: { self.wrappedValue },
+            set: { selection in
+                self.wrappedValue = selection
+                handler(selection)
+        })
     }
 }
 
