@@ -90,8 +90,8 @@ struct ContentView: View {
         self.output = self.yourMessageHere
         cloud.fetchRecords(name: self.sendingTo!)
       }).onReceive(cloudPublisher, perform: { (data) in
-        let token2Send = rsa.decprypt(encrpted: data)
-        poster.postNotification(token: token2Send!)
+//        let token2Send = rsa.decprypt(encrpted: data)
+        poster.postNotification(token: data)
       })
         .textFieldStyle(RoundedBorderTextFieldStyle())
         .padding()
@@ -108,14 +108,14 @@ struct ContentView: View {
             debugPrint(self.users[self.selected2])
             let appDelegate = UIApplication.shared.delegate as! AppDelegate
             let token = appDelegate.returnToken()
-            rsa.putPublicKey(publicK: data, blockSize: 2048, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
-            let token2Save = rsa.encrypt(text: token)
+//            rsa.putPublicKey(publicK: data, blockSize: 2048, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
+//            let token2Save = rsa.encrypt(text: token)
             self.sendingTo = self.users[self.selected2]
             // self.sending person selected in second PickerView
             // self.sender person selected in first PickerView sending message
             // token device sender [this device] is running on encypted with sending person public key
-            debugPrint("debug ",self.sendingTo!,self.sender!,token2Save,token)
-            cloud.fileRec(name: self.sendingTo, sender: self.sender, device: token2Save)
+            debugPrint("debug ",self.sendingTo!,self.sender!,token)
+            cloud.keepRec(name: self.sendingTo, sender: self.sender, device: token)
       }
       Text(message).onReceive(messagePublisher) { (data) in
           self.message = data

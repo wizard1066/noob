@@ -12,7 +12,7 @@ import Combine
 
 let pingPublisher = PassthroughSubject<String, Never>()
 let dataPublisher = PassthroughSubject<String, Never>()
-let cloudPublisher = PassthroughSubject<[UInt8], Never>()
+let cloudPublisher = PassthroughSubject<String, Never>()
 
 class Cloud: NSObject {
 
@@ -88,7 +88,7 @@ class Cloud: NSObject {
   }
   
   func fetchRecords(name: String) {
-    var rex:[UInt8]? = nil
+    
     let predicate = NSPredicate(format: "name = %@", name)
     let query = CKQuery(recordType: "mediator", predicate: predicate)
     publicDB.perform(query,
@@ -103,8 +103,10 @@ class Cloud: NSObject {
                       guard let results = results else { return }
                       for result in results {
                         print("results ",result)
-                        rex = result.object(forKey: "device") as? [UInt8]
-                        cloudPublisher.send(rex!)
+                        let rex = result.object(forKey: "devices") as? String
+                        DispatchQueue.main.async {
+                          cloudPublisher.send(rex!)
+                        }
                       }
                       
                       if results.count == 0 {
@@ -199,6 +201,30 @@ class Cloud: NSObject {
             }
             publicDB?.add(modifyRecordsOperation)
         }
+        
+        func keepRec(name: String, sender:String, device:String) {
+            let record = CKRecord(recordType: "mediator")
+            record.setObject(name as CKRecordValue, forKey: "name")
+            record.setObject(sender as CKRecordValue, forKey: "sender")
+            record.setObject(device as CKRecordValue, forKey: "devices")
+            let modifyRecordsOperation = CKModifyRecordsOperation(
+                recordsToSave: [record],
+                recordIDsToDelete: nil)
+
+                modifyRecordsOperation.modifyRecordsCompletionBlock =
+                { records, recordIDs, error in
+                    if let err = error {
+                        print("error ",error)
+        //                self.notifyUser("Save Error", message:
+        //                    err.localizedDescription)
+                    } else {
+                        DispatchQueue.main.async {
+                            print("success ")
+                        }
+                    }
+                }
+                publicDB?.add(modifyRecordsOperation)
+            }
         
       func subscribe() {
         let predicate = NSPredicate(format: "TRUEPREDICATE")
