@@ -11,6 +11,8 @@ import SwiftJWT
 
 class RemoteNotifications: NSObject, URLSessionDelegate {
 
+
+
   private var privateKey = """
   -----BEGIN PRIVATE KEY-----
   MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgl8Kij2y6acAgp1FZ
@@ -21,13 +23,13 @@ class RemoteNotifications: NSObject, URLSessionDelegate {
   """
 //  private var token = "e08118596402bdb12cce32913afe09edffbf477d2b2193ae3018a955b1776227"
 //  private var token = "738189f843d1b4b90be13fee67af08f68c1c6ebb56eedbd42677fdd3dc3136e1"
-  var token = "36a4500f71ee6eeadf82d61c4a47b85e0618a2c66ef0698dad5f32032864fcc3"
+//  var token = "36a4500f71ee6eeadf82d61c4a47b85e0618a2c66ef0698dad5f32032864fcc3"
   
 //  var jsonObject: [String: Any] = ["aps":["sound":"bingbong.aiff","badge":5,"alert":["title":"What, where, who, when, how","body":"You must be kidding"]]]
 
   var jsonObject: [String:Any] = ["aps":["content-available":1],"acme4":1984]
     
-func postNotification() {
+func postNotification(token:String) {
 
     let valid = JSONSerialization.isValidJSONObject(jsonObject)
     print("valid ",valid)

@@ -8,9 +8,10 @@
 
 import UIKit
 import UserNotifications
-import AVKit
-import MediaPlayer
-import AudioToolbox
+import CloudKit
+import Combine
+
+
 
 
 @UIApplicationMain
@@ -25,19 +26,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
      fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
      debugPrint("Received: \(userInfo)")
    
-//     do {
-//         let audioSession = AVAudioSession.sharedInstance()
-//         var volume: Float?
-//
-//         try audioSession.setActive(true)
-//         volume = audioSession.outputVolume
-//         print("vol ",volume)
-//         MPVolumeView.setVolume(0.1)
-//     } catch {
-//         print("Error Setting Up Audio Session")
-//     }
     completionHandler(.newData)
   }
+  
+  
   
   func application(_ application: UIApplication,
                    didFailToRegisterForRemoteNotificationsWithError error: Error) {
@@ -48,17 +40,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     // Override point for customization after application launch.
+    
     registerForNotifications()
     
-//    if #available(iOS 13.0, *) {
-//      UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound, .announcement, .criticalAlert, .provisional]) { (granted, error) in
-//        if error != nil {
-//          // display error
-//        }
-//      }
-//    } else {
-//      // Fallback on earlier versions
-//    }
     return true
   }
   
@@ -91,25 +75,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   }
 
   
+  var token:String!
+  
   func application( _ application: UIApplication,
                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
-    let token = tokenParts.joined()
-    print("Device Token: \n\(token)\n")
+    token = tokenParts.joined()
+    print("Device Token: \n\(String(describing: token))\n")
   }
   
-  
-
+  func returnToken() -> String {
+    return token
+  }
 
 }
 
-extension MPVolumeView {
-  static func setVolume(_ volume: Float) {
-    let volumeView = MPVolumeView()
-    let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider
 
-    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
-      slider?.value = volume
-    }
-  }
-}
