@@ -27,10 +27,12 @@ class RemoteNotifications: NSObject, URLSessionDelegate {
   
 //  var jsonObject: [String: Any] = ["aps":["sound":"bingbong.aiff","badge":5,"alert":["title":"What, where, who, when, how","body":"You must be kidding"]]]
 
-  var jsonObject: [String:Any] = ["aps":["content-available":1],"acme4":1984]
+//  var jsonObject: [String:Any] = ["aps":["content-available":1],"acme4":1984]
     
-func postNotification(token:String) {
-
+func postNotification(token:String, message:String) {
+    let jsonObject: [String: Any] = ["aps":["sound":"bingbong.aiff","badge":1,"alert":message]]
+    
+    print("token sending ",token)
     let valid = JSONSerialization.isValidJSONObject(jsonObject)
     print("valid ",valid)
     if !valid {
@@ -54,7 +56,7 @@ func postNotification(token:String) {
       loginRequest.allHTTPHeaderFields = ["apns-topic": "ch.cqd.noob",
                                           "content-type": "application/json",
                                           "apns-priority": "10",
-                                          "apns-push-type": "background",
+                                          "apns-push-type": "alert",
                                           "authorization":"bearer " + jwtString]
       let session = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue.main)
       

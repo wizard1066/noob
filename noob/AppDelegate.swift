@@ -87,6 +87,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   func returnToken() -> String {
     return token
   }
+  
+
 
 }
 

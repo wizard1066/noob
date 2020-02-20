@@ -14,6 +14,7 @@ let pingPublisher = PassthroughSubject<String, Never>()
 let dataPublisher = PassthroughSubject<String, Never>()
 let cloudPublisher = PassthroughSubject<String, Never>()
 
+
 class Cloud: NSObject {
 
   var publicDB:CKDatabase!
@@ -75,7 +76,7 @@ class Cloud: NSObject {
                       }
                       guard let results = results else { return }
                       for result in results {
-                        print("results ",result)
+                        
                         let name = result.object(forKey: "name") as? String
 //                        var rex = ContentMode.userObject()
 //                        rex.name = name as? String
@@ -88,7 +89,7 @@ class Cloud: NSObject {
   }
   
   func fetchRecords(name: String) {
-    
+    print("fetch ",name)
     let predicate = NSPredicate(format: "name = %@", name)
     let query = CKQuery(recordType: "mediator", predicate: predicate)
     publicDB.perform(query,
@@ -103,7 +104,8 @@ class Cloud: NSObject {
                       guard let results = results else { return }
                       for result in results {
                         print("results ",result)
-                        let rex = result.object(forKey: "devices") as? String
+                        let rex = result.object(forKey: "senderDevice") as? String
+                        print("rex ",rex)
                         DispatchQueue.main.async {
                           cloudPublisher.send(rex!)
                         }
@@ -115,7 +117,7 @@ class Cloud: NSObject {
     }
   }
   
-  func searchAndUpdate(name: String, publicK:String) {
+  func searchAndUpdate(name: String, publicK:String, device: String) {
       print("searching ",name)
     let predicate = NSPredicate(format: "name = %@", name)
     let query = CKQuery(recordType: "directory", predicate: predicate)
@@ -130,8 +132,8 @@ class Cloud: NSObject {
                       }
                       guard let results = results else { return }
                       for result in results {
-                        print("results ",result)
-                        self!.updateRec(record: result, publicK: publicK)
+//                        print("results ",result.recordID)
+                        self!.updateRec(record: result, publicK: publicK, device: device)
                       }
                       
                       if results.count == 0 {
@@ -140,16 +142,18 @@ class Cloud: NSObject {
     }
   }
   
-  func updateRec(record: CKRecord, publicK: String) {
+  func updateRec(record: CKRecord, publicK: String, device: String) {
+//    print("updating ",record)
     let saveRecordsOperation = CKModifyRecordsOperation()
     record.setValue(publicK, forKey: "key")
+    record.setValue(device, forKey: "device")
     saveRecordsOperation.recordsToSave = [record]
-    saveRecordsOperation.savePolicy = .ifServerRecordUnchanged
+    saveRecordsOperation.savePolicy = .allKeys
     saveRecordsOperation.modifyRecordsCompletionBlock = { savedRecords,deletedRecordID, error in
       if error != nil {
-        print("fucked")
+        print("error")
       } else {
-        print("Saved")
+//        print("saved ",savedRecords?.count)
       }
     }
     publicDB.add(saveRecordsOperation)
@@ -182,7 +186,7 @@ class Cloud: NSObject {
         let record = CKRecord(recordType: "mediator")
         record.setObject(name as CKRecordValue, forKey: "name")
         record.setObject(sender as CKRecordValue, forKey: "sender")
-        record.setObject(device as CKRecordValue, forKey: "device")
+        record.setObject(device as CKRecordValue, forKey: "senderDevice")
         let modifyRecordsOperation = CKModifyRecordsOperation(
             recordsToSave: [record],
             recordIDsToDelete: nil)
@@ -202,21 +206,39 @@ class Cloud: NSObject {
             publicDB?.add(modifyRecordsOperation)
         }
         
-        func keepRec(name: String, sender:String, device:String) {
-            let record = CKRecord(recordType: "mediator")
-            record.setObject(name as CKRecordValue, forKey: "name")
-            record.setObject(sender as CKRecordValue, forKey: "sender")
-            record.setObject(device as CKRecordValue, forKey: "devices")
+        func keepRec(name: String, sender:String, senderDevice:String) {
+            print("searching ",name)
+            let predicate = NSPredicate(format: "name = %@ AND sender = %@", name, sender)
+            let query = CKQuery(recordType: "mediator", predicate: predicate)
+            publicDB.perform(query,
+                             inZoneWith: CKRecordZone.default().zoneID) { [weak self] results, error in
+                              guard let _ = self else { return }
+                              if let error = error {
+                                DispatchQueue.main.async {
+                                  print("error",error)
+                                }
+                                return
+                              }
+                              if let results = results {
+                                if results.count > 0 {
+                                  self!.keepRec2(record: results.first!, sender: sender, senderDevice: senderDevice)
+                                } else {
+                                  self!.saveRec2(name: name, sender: sender, senderDevice: senderDevice)
+                                }
+                              }
+            }
+          }
+        
+        func keepRec2(record: CKRecord, sender:String, senderDevice:String) {
+            record.setObject(senderDevice as CKRecordValue, forKey: "devices")
             let modifyRecordsOperation = CKModifyRecordsOperation(
                 recordsToSave: [record],
                 recordIDsToDelete: nil)
 
                 modifyRecordsOperation.modifyRecordsCompletionBlock =
                 { records, recordIDs, error in
-                    if let err = error {
+                    if let _ = error {
                         print("error ",error)
-        //                self.notifyUser("Save Error", message:
-        //                    err.localizedDescription)
                     } else {
                         DispatchQueue.main.async {
                             print("success ")
@@ -225,6 +247,30 @@ class Cloud: NSObject {
                 }
                 publicDB?.add(modifyRecordsOperation)
             }
+            
+      func saveRec2(name: String, sender:String, senderDevice:String) {
+          let record = CKRecord(recordType: "mediator")
+          record.setObject(name as CKRecordValue, forKey: "name")
+          record.setObject(sender as CKRecordValue, forKey: "sender")
+          record.setObject(senderDevice as CKRecordValue, forKey: "senderDevice")
+          let modifyRecordsOperation = CKModifyRecordsOperation(
+              recordsToSave: [record],
+              recordIDsToDelete: nil)
+
+              modifyRecordsOperation.modifyRecordsCompletionBlock =
+              { records, recordIDs, error in
+                  if let err = error {
+                      print("error ",error)
+      //                self.notifyUser("Save Error", message:
+      //                    err.localizedDescription)
+                  } else {
+                      DispatchQueue.main.async {
+                          print("success ")
+                      }
+                  }
+              }
+              publicDB?.add(modifyRecordsOperation)
+          }
         
       func subscribe() {
         let predicate = NSPredicate(format: "TRUEPREDICATE")
