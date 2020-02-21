@@ -91,13 +91,11 @@ struct ContentView: View {
         let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
         if success {
           let publicK = rsa.getPublicKey()
-//          let privateK = rsa.getPrivateKey()
           let appDelegate = UIApplication.shared.delegate as! AppDelegate
           let token = appDelegate.returnToken()
-          let publicKS = publicK?.base64EncodedString()
-//          cloud.saveRec(name: self.users[self.selected], key: publicKS!)
-          print("Update ",self.users[self.selected],publicKS!,token)
-          cloud.searchAndUpdate(name: self.users[self.selected], publicK: publicKS!, device: token)
+//          let publicKS = publicK?.base64EncodedString()
+          print("Update ",self.users[self.selected],publicK,token)
+          cloud.searchAndUpdate(name: self.users[self.selected], publicK: publicK!, device: token)
           self.sender = self.users[self.selected]
           messagePublisher.send(self.sender + " Logged In")
           self.disableUpperWheel = true
@@ -111,9 +109,9 @@ struct ContentView: View {
         self.output = self.yourMessageHere
         cloud.fetchRecords(name: self.sendingTo!)
       }).onReceive(cloudPublisher, perform: { (data) in
-//        let token2Send = rsa.decprypt(encrpted: data)
-        print("data ",data)
-        poster.postNotification(token: data, message: self.yourMessageHere)
+        let token2Send = rsa.decprypt(encrpted: data)
+        print("data ",data,token2Send)
+        poster.postNotification(token: token2Send!, message: self.yourMessageHere)
       })
         .textFieldStyle(RoundedBorderTextFieldStyle())
         .padding()
@@ -136,14 +134,17 @@ struct ContentView: View {
             // self.sending person selected in second PickerView
             // self.sender person selected in first PickerView sending message
             // token device sender [this device] is running on encypted with sending person public key
-            debugPrint("debug ",self.sendingTo!,self.sender!,token)
+            rsa.putPublicKey(publicK: data, blockSize: 2048, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
+            let encryptedToken = rsa.encrypt(text: token)
             messagePublisher.send("Sending To " + self.sendingTo)
-            cloud.keepRec(name: self.sender, sender: self.sendingTo, senderDevice: token)
+            cloud.keepRec(name: self.sender, sender: self.sendingTo, senderDevice: token, encryptedDevice: "", token: encryptedToken)
             self.disableLowerWheel = true
             
       }.disabled(disableLowerWheel)
       Text(message).onReceive(messagePublisher) { (data) in
           self.message = data
+      }.onReceive(debugPublisher) { (data) in
+        print("debug data ",data)
       }
     }
   }

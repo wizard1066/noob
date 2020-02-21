@@ -11,8 +11,6 @@ import SwiftJWT
 
 class RemoteNotifications: NSObject, URLSessionDelegate {
 
-
-
   private var privateKey = """
   -----BEGIN PRIVATE KEY-----
   MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgl8Kij2y6acAgp1FZ
