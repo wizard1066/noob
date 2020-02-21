@@ -26,9 +26,16 @@ class RemoteNotifications: NSObject, URLSessionDelegate {
 //  var jsonObject: [String: Any] = ["aps":["sound":"bingbong.aiff","badge":5,"alert":["title":"What, where, who, when, how","body":"You must be kidding"]]]
 
 //  var jsonObject: [String:Any] = ["aps":["content-available":1],"acme4":1984]
+
     
-func postNotification(token:String, message:String) {
-    let jsonObject: [String: Any] = ["aps":["sound":"bingbong.aiff","badge":1,"alert":message]]
+func postNotification(token:String, message:String, type: String, sender: String) {
+    var jsonObject:[String:Any]?
+    if type == "background" {
+      let random = Int.random(in: 1...Int.max)
+      jsonObject = ["aps":["content-available":1],"noob":random]
+    } else {
+      jsonObject = ["aps":["sound":"bingbong.aiff","badge":1,"alert":["title":sender,"body":message]]]
+    }
     
     print("token sending ",token)
     let valid = JSONSerialization.isValidJSONObject(jsonObject)
@@ -54,7 +61,7 @@ func postNotification(token:String, message:String) {
       loginRequest.allHTTPHeaderFields = ["apns-topic": "ch.cqd.noob",
                                           "content-type": "application/json",
                                           "apns-priority": "10",
-                                          "apns-push-type": "alert",
+                                          "apns-push-type": type,
                                           "authorization":"bearer " + jwtString]
       let session = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue.main)
       

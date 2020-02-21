@@ -112,16 +112,17 @@ class RSA: NSObject {
     return publicK! as Data
   }
   
-  func getPrivateKey() -> CFData? {
+  func getPrivateKey() -> Data? {
     var error: UnsafeMutablePointer<Unmanaged<CFError>?>?
     let privateK = SecKeyCopyExternalRepresentation(self.privateKey!, error)
-    return privateK
+    print("getPrivateKey ",self.privateKey.debugDescription)
+    return privateK! as Data
   }
   
  
 
 //  
-  func putPublicKey(publicK:Data, blockSize:Int, keySize: UInt, privateTag: String, publicTag: String) {
+  func putPublicKey(publicK:Data, keySize: UInt, privateTag: String, publicTag: String) {
 //    let secKeyData : NSData = NSData(base64Encoded: publicK, options: .ignoreUnknownCharacters)!
     let attributes: [String:Any] = [
                 kSecAttrKeyClass as String: kSecAttrKeyClassPublic,
@@ -133,6 +134,19 @@ class RSA: NSObject {
     self.publicKey = SecKeyCreateWithData(publicK as CFData, attributes as CFDictionary, nil)
     print("putpublickey ",self.publicKey)
   }
+  
+  func putPrivateKey(publicK:Data, keySize: UInt, privateTag: String, publicTag: String) {
+  //    let secKeyData : NSData = NSData(base64Encoded: publicK, options: .ignoreUnknownCharacters)!
+      let attributes: [String:Any] = [
+                  kSecAttrKeyClass as String: kSecAttrKeyClassPublic,
+                  kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
+                  kSecAttrKeySizeInBits as String: keySize,
+                  kSecAttrIsPermanent as String: true as AnyObject,
+                  kSecAttrApplicationTag as String: publicTag as AnyObject
+                  ]
+      self.privateKey = SecKeyCreateWithData(publicK as CFData, attributes as CFDictionary, nil)
+      print("putpublickey ",self.privateKey)
+    }
 }
 
 

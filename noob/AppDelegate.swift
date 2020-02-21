@@ -18,7 +18,18 @@ import Combine
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+      print("fuckfuckfuck ",notification.request)
+      recieptPublisher.send()
       completionHandler([.alert, .badge, .sound])
+  }
+  
+  func userNotificationCenter(_ center: UNUserNotificationCenter, openSettingsFor notification: UNNotification?) {
+    print("yo buddy")
+  }
+  
+  func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    print("reponse ",response.notification.request.content.subtitle)
+  // code
   }
   
   func application(_ application: UIApplication,
@@ -29,6 +40,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     completionHandler(.newData)
   }
   
+   
   
   
   func application(_ application: UIApplication,
