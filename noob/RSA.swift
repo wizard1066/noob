@@ -135,17 +135,17 @@ class RSA: NSObject {
     print("putpublickey ",self.publicKey)
   }
   
-  func putPrivateKey(publicK:Data, keySize: UInt, privateTag: String, publicTag: String) {
+  func putPrivateKey(privateK:Data, keySize: UInt, privateTag: String, publicTag: String) {
   //    let secKeyData : NSData = NSData(base64Encoded: publicK, options: .ignoreUnknownCharacters)!
       let attributes: [String:Any] = [
                   kSecAttrKeyClass as String: kSecAttrKeyClassPublic,
                   kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
                   kSecAttrKeySizeInBits as String: keySize,
                   kSecAttrIsPermanent as String: true as AnyObject,
-                  kSecAttrApplicationTag as String: publicTag as AnyObject
+                  kSecAttrApplicationTag as String: privateTag as AnyObject
                   ]
-      self.privateKey = SecKeyCreateWithData(publicK as CFData, attributes as CFDictionary, nil)
-      print("putpublickey ",self.privateKey)
+      self.privateKey = SecKeyCreateWithData(privateK as CFData, attributes as CFDictionary, nil)
+      print("putprivatekey ",self.privateKey)
     }
 }
 

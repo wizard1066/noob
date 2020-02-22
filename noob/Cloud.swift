@@ -54,7 +54,7 @@ class Cloud: NSObject {
                       for result in results {
                         print("results ",result)
                         let privateK = result.object(forKey: "privateK") as? Data
-                        rsa.putPrivateKey(publicK: privateK!, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
+                        rsa.putPrivateKey(privateK: privateK!, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
                         self!.getPublicK(name: name)
                       }
                       
@@ -264,8 +264,8 @@ class Cloud: NSObject {
   
   func searchAndUpdate(name: String, publicK:Data, privateK:Data) {
     print("searching ",name)
-    let predicate = NSPredicate(format: "name = %@", name)
-    let query = CKQuery(recordType: "directory", predicate: predicate)
+    var predicate = NSPredicate(format: "name = %@", name)
+    var query = CKQuery(recordType: "directory", predicate: predicate)
     publicDB.perform(query,
                      inZoneWith: CKRecordZone.default().zoneID) { [weak self] results, error in
                       guard let _ = self else { return }
@@ -278,13 +278,40 @@ class Cloud: NSObject {
                       guard let results = results else { return }
                       for result in results {
                         self!.updateRec(record: result, publicK: publicK)
-                        self!.updateRec2(record: result, privateK: publicK)
                       }
                       
                       if results.count == 0 {
                         print("no name ",name)
                         DispatchQueue.main.async {
-                        messagePublisher.send(name + "searchAndUpdate Offline")
+                        messagePublisher.send(name + "PUBLIC searchAndUpdate Err")
+                        }
+                      }
+    }
+    
+    print("searching ",name)
+    predicate = NSPredicate(format: "name = %@", name)
+    query = CKQuery(recordType: "directory", predicate: predicate)
+    privateDB.perform(query,
+                     inZoneWith: CKRecordZone.default().zoneID) { [weak self] results, error in
+                      guard let _ = self else { return }
+                      if let error = error {
+                        DispatchQueue.main.async {
+                          print("error",error)
+                        }
+                        return
+                      }
+                      guard let results = results else { return }
+                      for result in results {
+                        self!.updateRec2(record: result, privateK: privateK)
+                      }
+                      
+                      if results.count == 0 {
+                        let record = CKRecord(recordType: "directory")
+                        record.setObject(name as CKRecordValue, forKey: "name")
+                        self!.updateRec2(record: record, privateK: privateK)
+                        
+                        DispatchQueue.main.async {
+                        messagePublisher.send(name + "PRIVATE created Rec")
                         }
                       }
     }
@@ -301,7 +328,7 @@ class Cloud: NSObject {
       if error != nil {
         print("error")
       } else {
-        //        print("saved ",savedRecords?.count)
+        print("saved ",savedRecords?.count)
       }
     }
     publicDB.add(saveRecordsOperation)
@@ -317,7 +344,7 @@ class Cloud: NSObject {
       if error != nil {
         print("error")
       } else {
-        //        print("saved ",savedRecords?.count)
+        print("saved ",savedRecords?.count)
       }
     }
     privateDB.add(saveRecordsOperation)
