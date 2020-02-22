@@ -95,7 +95,7 @@ class Cloud: NSObject {
                         let publicK = result.object(forKey: "publicK") as? Data
                         rsa.putPublicKey(publicK: publicK!, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
                         
-                        self!.getTokens(name: name)
+//                        self!.getTokens(name: name)
                       }
                       
                       if results.count == 0 {

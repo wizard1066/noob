@@ -138,7 +138,7 @@ class RSA: NSObject {
   func putPrivateKey(privateK:Data, keySize: UInt, privateTag: String, publicTag: String) {
   //    let secKeyData : NSData = NSData(base64Encoded: publicK, options: .ignoreUnknownCharacters)!
       let attributes: [String:Any] = [
-                  kSecAttrKeyClass as String: kSecAttrKeyClassPublic,
+                  kSecAttrKeyClass as String: kSecAttrKeyClassPrivate,
                   kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
                   kSecAttrKeySizeInBits as String: keySize,
                   kSecAttrIsPermanent as String: true as AnyObject,

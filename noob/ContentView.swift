@@ -94,13 +94,14 @@ struct ContentView: View {
           }
       }.onTapGesture {
           self.sender = self.users[self.selected]
-//          cloud.getPrivateK(name: self.sender)
-          let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
-          if success {
-            let privateK = rsa.getPrivateKey()
-            let publicK = rsa.getPublicKey()
-            cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!)
-          }
+          cloud.getPrivateK(name: self.sender)
+//          cloud.getPublicK(name: self.sender)
+//          let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
+//          if success {
+//            let privateK = rsa.getPrivateKey()
+//            let publicK = rsa.getPublicKey()
+//            cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!)
+//          }
           messagePublisher.send(self.sender + " Logged In")
           self.disableUpperWheel = true
       }.disabled(disableUpperWheel)
