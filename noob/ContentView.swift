@@ -7,7 +7,6 @@
 //
 
 import SwiftUI
-import AVFoundation
 import Combine
 import CloudKit
 
@@ -80,7 +79,6 @@ struct ContentView: View {
         cloud.getDirectory()
       }.onReceive(recieptPublisher) { (_) in
           messagePublisher.send("Message Recieved")
-//        poster.postNotification(token: token2Send!, message: "ok", type: "background")
       }
       Picker(selection: $selected, label: Text("Address")) {
         ForEach(0 ..< users.count) {
@@ -95,22 +93,16 @@ struct ContentView: View {
             self.index = 0
           }
       }.onTapGesture {
-        // download public/private keys on file if exist in directory
-        // download tokens encrypted wirh exiting keys, save locally
-        let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
-        if success {
-        // work thru list and update tokens with new private key
-        // upload new tokens now re-encrypted to mediator
-          let publicK = rsa.getPublicKey()
-          let privateK = rsa.getPrivateKey()
-          let appDelegate = UIApplication.shared.delegate as! AppDelegate
-          let token = appDelegate.returnToken()
-          print("Update ",self.users[self.selected],publicK,token)
-          cloud.searchAndUpdate(name: self.users[self.selected], publicK: publicK!, privateK: privateK!, device: token)
           self.sender = self.users[self.selected]
+//          cloud.getPrivateK(name: self.sender)
+          let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
+          if success {
+            let privateK = rsa.getPrivateKey()
+            let publicK = rsa.getPublicKey()
+            cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!)
+          }
           messagePublisher.send(self.sender + " Logged In")
           self.disableUpperWheel = true
-        }
       }.disabled(disableUpperWheel)
        .onReceive(resetPublisher) { (_) in
         self.disableUpperWheel = false
