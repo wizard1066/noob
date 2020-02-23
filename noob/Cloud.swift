@@ -95,7 +95,7 @@ class Cloud: NSObject {
                         let publicK = result.object(forKey: "publicK") as? Data
                         rsa.putPublicKey(publicK: publicK!, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
                         
-//                        self!.getTokens(name: name)
+                        self!.getTokens(name: name)
                       }
                       
                       if results.count == 0 {
@@ -131,8 +131,14 @@ class Cloud: NSObject {
                         }
                         for result in results {
                           let token = rsa.decprypt(encrpted: result.object(forKey: "token") as! [UInt8])
-                          result.setObject(token as CKRecordValue?, forKey: "senderDevice")
-                          mediator.append(result)
+                          if token != nil {
+                            result.setObject(token as CKRecordValue?, forKey: "senderDevice")
+                            mediator.append(result)
+                          } else {
+                            self!.publicDB.delete(withRecordID: result.recordID) { (recordID, error) in
+                              // move on
+                            }
+                          }
                         }
                         if results.count > 0 {
                           self!.resetSignature(tokens2Change:mediator,name: name)
@@ -160,6 +166,8 @@ class Cloud: NSObject {
         }
       }
       publicDB.add(saveRecordsOperation)
+      let privateK = rsa.getPrivateKey()
+      let publicK = rsa.getPublicKey()
       cloud.searchAndUpdate(name: name, publicK: publicK!, privateK: privateK!)
     }
   }
