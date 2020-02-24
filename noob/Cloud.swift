@@ -11,6 +11,7 @@ import CloudKit
 import Combine
 
 let pingPublisher = PassthroughSubject<String, Never>()
+let pongPublisher = PassthroughSubject<Void, Never>()
 let dataPublisher = PassthroughSubject<Data, Never>()
 let cloudPublisher = PassthroughSubject<[UInt8], Never>()
 let disablePublisher = PassthroughSubject<Void, Never>()
@@ -74,6 +75,9 @@ class Cloud: NSObject {
                         DispatchQueue.main.async {
                           pingPublisher.send(name!)
                         }
+                      }
+                      if results.count == 0 {
+                        DispatchQueue.main.async { pongPublisher.send() }
                       }
     }
   }

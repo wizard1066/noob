@@ -50,6 +50,8 @@ struct ContentView: View {
       }
     }
   }
+  
+  @State var showUpperWheel = true
   // The kludge, This is very limited cause we need to reserve space in advance, should use binding
   @State var users = ["","","","","","","",""]
   @State var selected2 = 0
@@ -79,46 +81,94 @@ struct ContentView: View {
   @State var alertMessage:String?
   
   @State var confirm:String?
+  @State var name:String = ""
+  
+  @State var showAdmin = true
 
   var body: some View {
     VStack {
       Text("noobChat").onAppear() {
         cloud.getDirectory()
+        if self.showAdmin {
+          self.showUpperWheel = false
+        }
+        let name = UserDefaults.standard.string(forKey: "name")
+        if name != nil {
+            self.showUpperWheel = false
+            self.sender = name
+            messagePublisher.send(self.sender + " Logged In")
+        }
       }.onReceive(recieptPublisher) { (_) in
          messagePublisher.send("Message Recieved")
+      }.onReceive(pongPublisher) { (_) in
+        print("FooBar")
+        self.showAdmin = true
       }
-      Picker(selection: $selected, label: Text("Address")) {
-        ForEach(0 ..< users.count) {
-          Text(self.users[$0])
+      if self.showAdmin {
+        HStack {
+          Button(action: {
+            self.users[self.index] = self.name
+            if self.index < self.users.count - 1 {
+              self.index = self.index + 1
+            } else {
+              self.index = 0
+            }
+            self.name = ""
+          }) {
+           Image(systemName: "plus.circle")
+          }
+          TextField("Nobody?", text: self.$name, onEditingChanged: { (editing) in
+            if editing {
+              self.name = ""
+            }
+          }, onCommit: {
+            self.users[self.index] = self.name
+            if self.index < self.users.count - 1 {
+              self.index = self.index + 1
+            } else {
+              self.index = 0
+            }
+            self.name = ""
+          })
+          Button(action: {
+            let finder = self.users.firstIndex(of: self.name)
+            self.users.remove(at: finder!)
+            self.users.append("")
+            self.index = self.index - 1
+          }) {
+           Image(systemName: "minus.circle")
+          }
+        }.padding()
+      }
+      if showUpperWheel {
+        Picker(selection: $selected, label: Text("Address")) {
+          ForEach(0 ..< users.count) {
+            Text(self.users[$0])
+          }
+        }.pickerStyle(WheelPickerStyle())
+          .padding().onTapGesture {
+          // *** 1ST ***
+            self.sender = self.users[self.selected]
+            UserDefaults.standard.set(self.sender, forKey: "name")
+            let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
+            if success {
+              let privateK = rsa.getPrivateKey()
+              let publicK = rsa.getPublicKey()
+              let appDelegate = UIApplication.shared.delegate as! AppDelegate
+              let token = appDelegate.returnToken()
+              var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
+              let random = String(timestamp, radix: 16)
+              cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!, token: token, shared: random)
+            }
+            messagePublisher.send(self.sender + " Logged In")
+            self.disableUpperWheel = true
+        }.disabled(disableUpperWheel)
+         .onReceive(resetPublisher) { (_) in
+          self.disableUpperWheel = false
+          self.disableLowerWheel = false
         }
-      }.pickerStyle(WheelPickerStyle())
-        .padding().onReceive(pingPublisher) { (data) in
-          self.users[self.index] = data
-          if self.index < self.users.count - 1 {
-            self.index = self.index + 1
-          } else {
-            self.index = 0
-          }
-      }.onTapGesture {
-        // *** 1ST ***
-          self.sender = self.users[self.selected]
-          let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
-          if success {
-            let privateK = rsa.getPrivateKey()
-            let publicK = rsa.getPublicKey()
-            let appDelegate = UIApplication.shared.delegate as! AppDelegate
-            let token = appDelegate.returnToken()
-            var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
-            let random = String(timestamp, radix: 16)
-            cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!, token: token, shared: random)
-          }
-          messagePublisher.send(self.sender + " Logged In")
-          self.disableUpperWheel = true
-      }.disabled(disableUpperWheel)
-       .onReceive(resetPublisher) { (_) in
-        self.disableUpperWheel = false
-        self.disableLowerWheel = false
       }
+      if !showAdmin {
       TextField("Message", text: $yourMessageHere, onCommit: {
         self.output = self.yourMessageHere
         if self.confirm != nil {
@@ -133,13 +183,23 @@ struct ContentView: View {
         .onReceive(disablePublisher) { (_) in
           self.disableMessaging = true
         }
-       
+      }
       Picker(selection: $selected2, label: Text("Addresse")) {
         ForEach(0 ..< users.count) {
           Text(self.users[$0])
         }
       }.pickerStyle(WheelPickerStyle())
         .padding()
+        .onReceive(pingPublisher) { (data) in
+            if data != self.sender {
+              self.users[self.index] = data
+              if self.index < self.users.count - 1 {
+                self.index = self.index + 1
+              } else {
+                self.index = 0
+              }
+            }
+        }
         .onTapGesture {
           // *** 2ND ***
           self.sendingTo = self.users[self.selected2]
@@ -172,6 +232,13 @@ struct ContentView: View {
       }).onReceive(popPublisher) { (token) in
         self.disableMessaging = false
       }.disabled(disableLowerWheel)
+      if showAdmin {
+        Button(action: {
+          print("saving to icloud")
+        }) {
+         Image(systemName: "icloud.and.arrow.up")
+        }
+      }
       Text(message).onReceive(messagePublisher) { (data) in
           self.message = data
       }
@@ -181,7 +248,7 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+      ContentView()
     }
 }
 
