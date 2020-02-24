@@ -259,7 +259,7 @@ class Cloud: NSObject {
                         if token == "" {
                           self!.authRequest2(auth: auth, name: name, device: device)
                         } else {
-                          DispatchQueue.main.async { enableMessaging.send(token) }
+                          DispatchQueue.main.async { shortProtocol.send(token) }
                         }
                       }
                       if results.count == 0 {

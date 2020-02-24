@@ -19,6 +19,7 @@ let cloud = Cloud()
 let messagePublisher = PassthroughSubject<String, Never>()
 let resetPublisher = PassthroughSubject<Void, Never>()
 let recieptPublisher = PassthroughSubject<Void, Never>()
+let shortProtocol = PassthroughSubject<String, Never>()
 
 class ContentMode {
 
@@ -134,7 +135,11 @@ struct ContentView: View {
       }).alert(isPresented:$showingGrant) {
           Alert(title: Text("Go aHead"), message: Text("What is on your mind?"), dismissButton: .default(Text("Clear")))
           
-      }
+      }.onReceive(shortProtocol, perform: { (data) in
+        print("Granted")
+        self.confirm = data
+        self.disableMessaging = false
+      })
       .textFieldStyle(RoundedBorderTextFieldStyle())
         .padding()
         .disabled(disableMessaging)
