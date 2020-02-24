@@ -130,15 +130,10 @@ struct ContentView: View {
         self.confirm = data
         self.disableMessaging = false
         self.showingGrant = true
+        cloud.saveAuthRequest2PrivateDB(name: self.sendingTo, token: self.confirm!)
       }).alert(isPresented:$showingGrant) {
-          Alert(title: Text("Go aHead"), message: Text("What's on yourmind"), dismissButton: .default(Text("Clear")))
-//          Alert(title: "Talk", message: Text("fooBar"), dismissButton: .destructive(Text("Tell Me"))
-//          Alert(title: Text("OK"))
-    
-//          Alert(title: Text("What's on your mind?"), message: Text("fooBar"), primaryButton: .destructive(Text("Authorize")) {
-//            poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
-//            // save in private DB
-//          }, secondaryButton: .cancel())
+          Alert(title: Text("Go aHead"), message: Text("What is on your mind?"), dismissButton: .default(Text("Clear")))
+          
       }
       .textFieldStyle(RoundedBorderTextFieldStyle())
         .padding()
@@ -167,6 +162,7 @@ struct ContentView: View {
           Alert(title: Text("Can we talk?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Sure")) {
             poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
             // save in private DB
+            
           }, secondaryButton: .cancel(Text("No")))
       }.onReceive(popPublisher) { (token) in
         self.disableMessaging = false
