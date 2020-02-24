@@ -74,6 +74,7 @@ struct ContentView: View {
   @State var poke = true
   
   @State var showingAlert = false
+  @State var showingGrant = false
   @State var alertMessage:String?
   
   @State var confirm:String?
@@ -108,7 +109,7 @@ struct ContentView: View {
             let token = appDelegate.returnToken()
             var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
             let random = String(timestamp, radix: 16)
-            cloud.searchAndUpdateDB(name: self.sender, publicK: publicK!, privateK: privateK!, token: token, shared: random)
+            cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!, token: token, shared: random)
           }
           messagePublisher.send(self.sender + " Logged In")
           self.disableUpperWheel = true
@@ -128,7 +129,17 @@ struct ContentView: View {
         print("Granted")
         self.confirm = data
         self.disableMessaging = false
-      })
+        self.showingGrant = true
+      }).alert(isPresented:$showingGrant) {
+          Alert(title: Text("Go aHead"), message: Text("What's on yourmind"), dismissButton: .default(Text("Clear")))
+//          Alert(title: "Talk", message: Text("fooBar"), dismissButton: .destructive(Text("Tell Me"))
+//          Alert(title: Text("OK"))
+    
+//          Alert(title: Text("What's on your mind?"), message: Text("fooBar"), primaryButton: .destructive(Text("Authorize")) {
+//            poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
+//            // save in private DB
+//          }, secondaryButton: .cancel())
+      }
       .textFieldStyle(RoundedBorderTextFieldStyle())
         .padding()
         .disabled(disableMessaging)
@@ -147,16 +158,16 @@ struct ContentView: View {
           self.sendingTo = self.users[self.selected2]
           let appDelegate = UIApplication.shared.delegate as! AppDelegate
           let token = appDelegate.returnToken()
-          cloud.authRequestDB(auth:self.sender, name: self.sendingTo!, device: token)
+          cloud.authRequest(auth:self.sender, name: self.sendingTo!, device: token)
       }.onReceive(popPublisher) { (token,data) in
         self.alertMessage = data
         self.confirm = token
         self.showingAlert = true
       }.alert(isPresented:$showingAlert) {
-          Alert(title: Text("Can we talk?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Authorize")) {
+          Alert(title: Text("Can we talk?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Sure")) {
             poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
             // save in private DB
-          }, secondaryButton: .cancel())
+          }, secondaryButton: .cancel(Text("No")))
       }.onReceive(popPublisher) { (token) in
         self.disableMessaging = false
       }.disabled(disableLowerWheel)
