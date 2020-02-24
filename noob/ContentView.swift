@@ -85,7 +85,6 @@ struct ContentView: View {
       }.onReceive(recieptPublisher) { (_) in
          messagePublisher.send("Message Recieved")
       }
-      
       Picker(selection: $selected, label: Text("Address")) {
         ForEach(0 ..< users.count) {
           Text(self.users[$0])
@@ -118,32 +117,18 @@ struct ContentView: View {
         self.disableUpperWheel = false
         self.disableLowerWheel = false
       }
-//      Button(action: {
-//        self.showingAlert = false
-//        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-//        let token = appDelegate.returnToken()
-////        poster.postNotification(token: token, message: "Silence is Golden", type: "background")
-//        cloud.registerCode()
-//      }) {
-//        Text("Pop")
-//      }
       TextField("Message", text: $yourMessageHere, onCommit: {
         self.output = self.yourMessageHere
         if self.confirm != nil {
-          poster.postNotification(token: self.confirm!, message: self.yourMessageHere, type: "alert", request: "ok")
+          let appDelegate = UIApplication.shared.delegate as! AppDelegate
+          let token = appDelegate.returnToken()
+          poster.postNotification(token: self.confirm!, message: self.yourMessageHere, type: "alert", request: "ok", device: token)
         }
+      }).onReceive(enableMessaging, perform: { (data) in
+        print("Granted")
+        self.confirm = data
+        self.disableMessaging = false
       })
-//        let token2Send = rsa.decprypt(encrpted: data)
-//        print("data ",data,token2Send)
-//
-//        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-//        let token = appDelegate.returnToken()
-//        if token2Send != nil {
-//          poster.postNotification(token: token2Send!, message: self.yourMessageHere, type: "alert")
-//        } else {
-//          messagePublisher.send("Public Key " + self.sendingTo! + " Wrong")
-//        }
-//      })
       .textFieldStyle(RoundedBorderTextFieldStyle())
         .padding()
         .disabled(disableMessaging)
@@ -159,42 +144,22 @@ struct ContentView: View {
         .padding()
         .onTapGesture {
           // *** 2ND ***
-          self.sendingTo = self.users[self.selected]
-          cloud.authRequestDB(name: self.sendingTo!)
-          
-          
-          
-//        }.onReceive(dataPublisher) { (data) in
-//            debugPrint(self.users[self.selected2])
-//            let appDelegate = UIApplication.shared.delegate as! AppDelegate
-//            let token = appDelegate.returnToken()
-//            self.sendingTo = self.users[self.selected2]
-//            // self.sending person selected in second PickerView
-//            // self.sender person selected in first PickerView sending message
-//            // token device sender [this device] is running on encypted with sending person public key
-//            rsa.putPublicKey(publicK: data, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
-//            let encryptedToken = rsa.encrypt(text: token)
-//            messagePublisher.send("Sending To " + self.sendingTo)
-//            cloud.keepRec(name: self.sender, sender: self.sendingTo, senderDevice: token, token: encryptedToken, silent: self.poke)
-//            self.disableLowerWheel = true
-////            cloud.fetchRecords(name: self.sendingTo!, silent: true)
-////             if you get a response you're good to go
-      }.onReceive(popPublisher) { (data,token) in
+          self.sendingTo = self.users[self.selected2]
+          let appDelegate = UIApplication.shared.delegate as! AppDelegate
+          let token = appDelegate.returnToken()
+          cloud.authRequestDB(auth:self.sender, name: self.sendingTo!, device: token)
+      }.onReceive(popPublisher) { (token,data) in
         self.alertMessage = data
         self.confirm = token
         self.showingAlert = true
       }.alert(isPresented:$showingAlert) {
           Alert(title: Text("Can we talk?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Authorize")) {
-            poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant")
+            poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
+            // save in private DB
           }, secondaryButton: .cancel())
       }.onReceive(popPublisher) { (token) in
         self.disableMessaging = false
       }.disabled(disableLowerWheel)
-//      .onReceive(pokePublisher) { (data) in
-//          let token2Send = rsa.decprypt(encrpted: data)
-//          print("data ",data,token2Send)
-//          poster.postNotification(token: token2Send!, message: "You online?", silent: true)
-//      }
       Text(message).onReceive(messagePublisher) { (data) in
           self.message = data
       }

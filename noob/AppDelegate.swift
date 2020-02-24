@@ -40,11 +40,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
      debugPrint("Received: \(userInfo)")
      let request = userInfo["request"] as? String
      let user = userInfo["user"] as? String
+     let device = userInfo["device"] as? String
      if request == "request" {
-        popPublisher.send((token,user!))
+        print("token ",device)
+        popPublisher.send((device!,user!))
      }
      if request == "grant" {
-        enableMessaging.send(token)
+        print("token ",token)
+        enableMessaging.send(device!)
       }
     completionHandler(.newData)
   }

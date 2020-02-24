@@ -242,7 +242,7 @@ class Cloud: NSObject {
     }
   }
   
-  func authRequestDB(name: String) {
+  func authRequestDB(auth:String, name: String, device:String) {
     // Search the directory
     let predicate = NSPredicate(format: "name = %@", name)
     let query = CKQuery(recordType: "directory", predicate: predicate)
@@ -257,7 +257,7 @@ class Cloud: NSObject {
                       for result in results {
                         print("results ",result)
                         let token = result.object(forKey: "device") as! String
-                        poster.postNotification(token: token, message: name, type: "background", request: "request")
+                        poster.postNotification(token: token, message: auth, type: "background", request: "request", device:device)
                       }
                       if results.count == 0 {
                         print("no name ",name)
