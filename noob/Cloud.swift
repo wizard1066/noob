@@ -15,6 +15,7 @@ let dataPublisher = PassthroughSubject<Data, Never>()
 let cloudPublisher = PassthroughSubject<[UInt8], Never>()
 let disablePublisher = PassthroughSubject<Void, Never>()
 let pokePublisher = PassthroughSubject<[UInt8], Never>()
+let requestPublisher = PassthroughSubject<String, Never>()
 
 
 
@@ -33,6 +34,25 @@ class Cloud: NSObject {
   
   private var privateK:Data?
   private var publicK:Data?
+  
+  func registerCode() {
+    var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
+    let random = String(timestamp, radix: 16)
+    let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
+    if success {
+      let privateK = rsa.getPrivateKey()
+      let publicK = rsa.getPublicKey()
+      
+      let record = CKRecord(recordType: "directory")
+      var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
+      
+      record.setObject(random as CKRecordValue, forKey: "name")
+      record.setObject(privateK as CKRecordValue?, forKey: "privateK")
+      
+      
+    }
+    
+  }
   
  
   
@@ -67,7 +87,7 @@ class Cloud: NSObject {
                         if success {
                           let privateK = rsa.getPrivateKey()
                           let publicK = rsa.getPublicKey()
-                          self!.searchAndUpdate(name: name, publicK: publicK!, privateK: privateK!)
+//                          self!.searchAndUpdate(name: name, publicK: publicK!, privateK: privateK!)
                         }
                         return
                       }
@@ -168,43 +188,32 @@ class Cloud: NSObject {
       publicDB.add(saveRecordsOperation)
       let privateK = rsa.getPrivateKey()
       let publicK = rsa.getPublicKey()
-      cloud.searchAndUpdate(name: name, publicK: publicK!, privateK: privateK!)
+//      cloud.searchAndUpdate(name: name, publicK: publicK!, privateK: privateK!)
     }
   }
   
   
   func search(name: String) {
-    print("searching ",name)
-    
     let predicate = NSPredicate(format: "name = %@", name)
     let query = CKQuery(recordType: "directory", predicate: predicate)
     publicDB.perform(query,
                      inZoneWith: CKRecordZone.default().zoneID) { [weak self] results, error in
                       guard let _ = self else { return }
                       if let error = error {
-                        DispatchQueue.main.async {
-                          print("error",error)
-                        }
+                        DispatchQueue.main.async { print("error",error) }
                         return
                       }
                       guard let results = results else { return }
                       for result in results {
                         print("results ",result)
                         let publicK = result.object(forKey: "publicK") as! Data
-                        DispatchQueue.main.async {
-                          
-                            dataPublisher.send(publicK)
-                          
-                        }
+                        DispatchQueue.main.async { dataPublisher.send(publicK) }
                       }
-                      
                       if results.count == 0 {
                         print("no name ",name)
                         messagePublisher.send(name + "search Offline")
-                        return
                       }
     }
-    return
   }
   
   func getDirectory() {
@@ -233,7 +242,31 @@ class Cloud: NSObject {
     }
   }
   
-  func fetchRecords(name: String, silent: Bool) {
+  func authRequestDB(name: String) {
+    // Search the directory
+    let predicate = NSPredicate(format: "name = %@", name)
+    let query = CKQuery(recordType: "directory", predicate: predicate)
+    publicDB.perform(query,
+                     inZoneWith: CKRecordZone.default().zoneID) { [weak self] results, error in
+                      guard let _ = self else { return }
+                      if let error = error {
+                        DispatchQueue.main.async { print("error",error) }
+                        return
+                      }
+                      guard let results = results else { return }
+                      for result in results {
+                        print("results ",result)
+                        let token = result.object(forKey: "device") as! String
+                        poster.postNotification(token: token, message: name, type: "background", request: "request")
+                      }
+                      if results.count == 0 {
+                        print("no name ",name)
+                        
+                      }
+    }
+  }
+  
+  func fetchRecordsDB(name: String, silent: Bool) {
     print("fetch ",name)
     let predicate = NSPredicate(format: "name = %@", name)
     let query = CKQuery(recordType: "mediator", predicate: predicate)
@@ -270,7 +303,7 @@ class Cloud: NSObject {
     }
   }
   
-  func searchAndUpdate(name: String, publicK:Data, privateK:Data) {
+  func searchAndUpdateDB(name: String, publicK:Data, privateK:Data, token:String, shared:String) {
     print("searching ",name)
     var predicate = NSPredicate(format: "name = %@", name)
     var query = CKQuery(recordType: "directory", predicate: predicate)
@@ -285,7 +318,7 @@ class Cloud: NSObject {
                       }
                       guard let results = results else { return }
                       for result in results {
-                        self!.updateRec(record: result, publicK: publicK)
+                        self!.save2PublicDB(record: result, publicK: publicK, token: token)
                       }
                       
                       if results.count == 0 {
@@ -310,14 +343,13 @@ class Cloud: NSObject {
                       }
                       guard let results = results else { return }
                       for result in results {
-                        self!.updateRec2(record: result, privateK: privateK)
+                        self!.save2PrivateDB(record: result, privateK: privateK, shared:shared)
                       }
                       
                       if results.count == 0 {
                         let record = CKRecord(recordType: "directory")
                         record.setObject(name as CKRecordValue, forKey: "name")
-                        self!.updateRec2(record: record, privateK: privateK)
-                        
+                        self!.save2PrivateDB(record: record, privateK: privateK, shared:shared)
                         DispatchQueue.main.async {
                         messagePublisher.send(name + "PRIVATE created Rec")
                         }
@@ -325,11 +357,11 @@ class Cloud: NSObject {
     }
   }
   
-  func updateRec(record: CKRecord, publicK: Data) {
+  func save2PublicDB(record: CKRecord, publicK: Data, token:String) {
     //    print("updating ",record)
     let saveRecordsOperation = CKModifyRecordsOperation()
     record.setValue(publicK, forKey: "publicK")
-    
+    record.setValue(token, forKey: "device")
     saveRecordsOperation.recordsToSave = [record]
     saveRecordsOperation.savePolicy = .allKeys
     saveRecordsOperation.modifyRecordsCompletionBlock = { savedRecords,deletedRecordID, error in
@@ -342,10 +374,11 @@ class Cloud: NSObject {
     publicDB.add(saveRecordsOperation)
   }
   
-  func updateRec2(record: CKRecord, privateK: Data) {
+  func save2PrivateDB(record: CKRecord, privateK: Data, shared: String) {
     //    print("updating ",record)
     let saveRecordsOperation = CKModifyRecordsOperation()
     record.setValue(privateK, forKey: "privateK")
+    record.setValue(shared, forKey: "sharedS")
     saveRecordsOperation.recordsToSave = [record]
     saveRecordsOperation.savePolicy = .allKeys
     saveRecordsOperation.modifyRecordsCompletionBlock = { savedRecords,deletedRecordID, error in

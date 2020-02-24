@@ -8,6 +8,9 @@
 
 import UIKit
 import SwiftJWT
+import Combine
+
+
 
 class RemoteNotifications: NSObject, URLSessionDelegate {
 
@@ -28,13 +31,13 @@ class RemoteNotifications: NSObject, URLSessionDelegate {
 //  var jsonObject: [String:Any] = ["aps":["content-available":1],"acme4":1984]
 
     
-func postNotification(token:String, message:String, type: String, sender: String) {
+func postNotification(token:String, message:String, type: String, request: String) {
     var jsonObject:[String:Any]?
     if type == "background" {
-      let random = Int.random(in: 1...Int.max)
-      jsonObject = ["aps":["content-available":1],"noob":random]
+//      let random = Int.random(in: 1...Int.max)
+      jsonObject = ["aps":["content-available":1],"request":request,"user":message]
     } else {
-      jsonObject = ["aps":["sound":"bingbong.aiff","badge":1,"alert":["title":sender,"body":message]]]
+      jsonObject = ["aps":["sound":"bingbong.aiff","badge":1,"alert":["title":"Noob","body":message]]]
     }
     
     print("token sending ",token)

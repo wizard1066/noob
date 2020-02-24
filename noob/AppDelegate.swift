@@ -11,14 +11,16 @@ import UserNotifications
 import CloudKit
 import Combine
 
+let popPublisher = PassthroughSubject<(String,String), Never>()
+let enableMessaging = PassthroughSubject<(String), Never>()
 
-
+var token:String!
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-      print("fuckfuckfuck ",notification.request)
+      
       recieptPublisher.send()
       completionHandler([.alert, .badge, .sound])
   }
@@ -36,7 +38,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   didReceiveRemoteNotification userInfo: [AnyHashable : Any],
      fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
      debugPrint("Received: \(userInfo)")
-   
+     let request = userInfo["request"] as? String
+     let user = userInfo["user"] as? String
+     if request == "request" {
+        popPublisher.send((token,user!))
+     }
+     if request == "grant" {
+        enableMessaging.send(token)
+      }
     completionHandler(.newData)
   }
   
@@ -87,7 +96,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   }
 
   
-  var token:String!
+
   
   func application( _ application: UIApplication,
                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {

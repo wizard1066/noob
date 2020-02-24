@@ -70,16 +70,22 @@ struct ContentView: View {
   @State var disableUpperWheel = false
   @State var disableLowerWheel = false
   
-  @State var disableMessaging = false
+  @State var disableMessaging = true
   @State var poke = true
+  
+  @State var showingAlert = false
+  @State var alertMessage:String?
+  
+  @State var confirm:String?
 
   var body: some View {
     VStack {
       Text("noobChat").onAppear() {
         cloud.getDirectory()
       }.onReceive(recieptPublisher) { (_) in
-          messagePublisher.send("Message Recieved")
+         messagePublisher.send("Message Recieved")
       }
+      
       Picker(selection: $selected, label: Text("Address")) {
         ForEach(0 ..< users.count) {
           Text(self.users[$0])
@@ -93,15 +99,18 @@ struct ContentView: View {
             self.index = 0
           }
       }.onTapGesture {
+        // *** 1ST ***
           self.sender = self.users[self.selected]
-          cloud.getPrivateK(name: self.sender)
-//          cloud.getPublicK(name: self.sender)
-//          let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
-//          if success {
-//            let privateK = rsa.getPrivateKey()
-//            let publicK = rsa.getPublicKey()
-//            cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!)
-//          }
+          let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
+          if success {
+            let privateK = rsa.getPrivateKey()
+            let publicK = rsa.getPublicKey()
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            let token = appDelegate.returnToken()
+            var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
+            let random = String(timestamp, radix: 16)
+            cloud.searchAndUpdateDB(name: self.sender, publicK: publicK!, privateK: privateK!, token: token, shared: random)
+          }
           messagePublisher.send(self.sender + " Logged In")
           self.disableUpperWheel = true
       }.disabled(disableUpperWheel)
@@ -109,23 +118,33 @@ struct ContentView: View {
         self.disableUpperWheel = false
         self.disableLowerWheel = false
       }
-      
+//      Button(action: {
+//        self.showingAlert = false
+//        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+//        let token = appDelegate.returnToken()
+////        poster.postNotification(token: token, message: "Silence is Golden", type: "background")
+//        cloud.registerCode()
+//      }) {
+//        Text("Pop")
+//      }
       TextField("Message", text: $yourMessageHere, onCommit: {
         self.output = self.yourMessageHere
-        cloud.fetchRecords(name: self.sendingTo!, silent: false)
-      }).onReceive(cloudPublisher, perform: { (data) in
-        let token2Send = rsa.decprypt(encrpted: data)
-        print("data ",data,token2Send)
-        
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let token = appDelegate.returnToken()
-        if token2Send != nil {
-          poster.postNotification(token: token2Send!, message: self.yourMessageHere, type: "alert", sender: token)
-        } else {
-          messagePublisher.send("Public Key " + self.sendingTo! + " Wrong")
+        if self.confirm != nil {
+          poster.postNotification(token: self.confirm!, message: self.yourMessageHere, type: "alert", request: "ok")
         }
       })
-        .textFieldStyle(RoundedBorderTextFieldStyle())
+//        let token2Send = rsa.decprypt(encrpted: data)
+//        print("data ",data,token2Send)
+//
+//        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+//        let token = appDelegate.returnToken()
+//        if token2Send != nil {
+//          poster.postNotification(token: token2Send!, message: self.yourMessageHere, type: "alert")
+//        } else {
+//          messagePublisher.send("Public Key " + self.sendingTo! + " Wrong")
+//        }
+//      })
+      .textFieldStyle(RoundedBorderTextFieldStyle())
         .padding()
         .disabled(disableMessaging)
         .onReceive(disablePublisher) { (_) in
@@ -139,23 +158,37 @@ struct ContentView: View {
       }.pickerStyle(WheelPickerStyle())
         .padding()
         .onTapGesture {
-          print("SELECTED2")
-          cloud.search(name: self.users[self.selected2])
-        }.onReceive(dataPublisher) { (data) in
-            debugPrint(self.users[self.selected2])
-            let appDelegate = UIApplication.shared.delegate as! AppDelegate
-            let token = appDelegate.returnToken()
-            self.sendingTo = self.users[self.selected2]
-            // self.sending person selected in second PickerView
-            // self.sender person selected in first PickerView sending message
-            // token device sender [this device] is running on encypted with sending person public key
-            rsa.putPublicKey(publicK: data, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
-            let encryptedToken = rsa.encrypt(text: token)
-            messagePublisher.send("Sending To " + self.sendingTo)
-            cloud.keepRec(name: self.sender, sender: self.sendingTo, senderDevice: token, token: encryptedToken, silent: self.poke)
-            self.disableLowerWheel = true
-//            cloud.fetchRecords(name: self.sendingTo!, silent: true)
-//             if you get a response you're good to go
+          // *** 2ND ***
+          self.sendingTo = self.users[self.selected]
+          cloud.authRequestDB(name: self.sendingTo!)
+          
+          
+          
+//        }.onReceive(dataPublisher) { (data) in
+//            debugPrint(self.users[self.selected2])
+//            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+//            let token = appDelegate.returnToken()
+//            self.sendingTo = self.users[self.selected2]
+//            // self.sending person selected in second PickerView
+//            // self.sender person selected in first PickerView sending message
+//            // token device sender [this device] is running on encypted with sending person public key
+//            rsa.putPublicKey(publicK: data, keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
+//            let encryptedToken = rsa.encrypt(text: token)
+//            messagePublisher.send("Sending To " + self.sendingTo)
+//            cloud.keepRec(name: self.sender, sender: self.sendingTo, senderDevice: token, token: encryptedToken, silent: self.poke)
+//            self.disableLowerWheel = true
+////            cloud.fetchRecords(name: self.sendingTo!, silent: true)
+////             if you get a response you're good to go
+      }.onReceive(popPublisher) { (data,token) in
+        self.alertMessage = data
+        self.confirm = token
+        self.showingAlert = true
+      }.alert(isPresented:$showingAlert) {
+          Alert(title: Text("Can we talk?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Authorize")) {
+            poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant")
+          }, secondaryButton: .cancel())
+      }.onReceive(popPublisher) { (token) in
+        self.disableMessaging = false
       }.disabled(disableLowerWheel)
 //      .onReceive(pokePublisher) { (data) in
 //          let token2Send = rsa.decprypt(encrpted: data)
@@ -174,6 +207,16 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+
+struct PopUp : View {
+  
+  var body : some View {
+    VStack {
+      Text("Hello World")
+    }
+  }
+}
+
 
 extension Binding {
     func onChange(_ handler: @escaping (Value) -> Void) -> Binding<Value> {
