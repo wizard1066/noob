@@ -126,19 +126,6 @@ struct ContentView: View {
           let token = appDelegate.returnToken()
           poster.postNotification(token: self.confirm!, message: self.yourMessageHere, type: "alert", request: "ok", device: token)
         }
-      }).onReceive(enableMessaging, perform: { (data) in
-        print("Granted")
-        self.confirm = data
-        self.disableMessaging = false
-        self.showingGrant = true
-        cloud.saveAuthRequest2PrivateDB(name: self.sendingTo, token: self.confirm!)
-      }).alert(isPresented:$showingGrant) {
-          Alert(title: Text("Go aHead"), message: Text("What is on your mind?"), dismissButton: .default(Text("Clear")))
-          
-      }.onReceive(shortProtocol, perform: { (data) in
-        print("Granted")
-        self.confirm = data
-        self.disableMessaging = false
       })
       .textFieldStyle(RoundedBorderTextFieldStyle())
         .padding()
@@ -169,7 +156,20 @@ struct ContentView: View {
             // save in private DB
             
           }, secondaryButton: .cancel(Text("No")))
-      }.onReceive(popPublisher) { (token) in
+      }.onReceive(enableMessaging, perform: { (data) in
+        print("Granted")
+        self.confirm = data
+        self.disableMessaging = false
+        self.showingGrant = true
+        cloud.saveAuthRequest2PrivateDB(name: self.sendingTo, token: self.confirm!)
+      }).alert(isPresented:$showingGrant) {
+          Alert(title: Text("Go aHead"), message: Text("What is on your mind?"), dismissButton: .default(Text("Clear")))
+          
+      }.onReceive(shortProtocol, perform: { (data) in
+        print("Granted")
+        self.confirm = data
+        self.disableMessaging = false
+      }).onReceive(popPublisher) { (token) in
         self.disableMessaging = false
       }.disabled(disableLowerWheel)
       Text(message).onReceive(messagePublisher) { (data) in
