@@ -20,6 +20,7 @@ let messagePublisher = PassthroughSubject<String, Never>()
 let resetPublisher = PassthroughSubject<Void, Never>()
 let recieptPublisher = PassthroughSubject<Void, Never>()
 let shortProtocol = PassthroughSubject<String, Never>()
+let turnOffAdmin = PassthroughSubject<Void, Never>()
 
 class ContentMode {
 
@@ -87,6 +88,17 @@ struct ContentView: View {
 
   var body: some View {
     VStack {
+      if showAdmin {
+        Button(action: {
+          print("saving to icloud")
+          cloud.seekAndTell(names: self.users)
+        }) {
+         Image(systemName: "icloud.and.arrow.up")
+        }.onReceive(turnOffAdmin) { (_) in
+          self.showAdmin = false
+          self.showUpperWheel = true
+        }
+      }
       Text("noobChat").onAppear() {
         cloud.getDirectory()
         if self.showAdmin {
@@ -95,23 +107,34 @@ struct ContentView: View {
         let name = UserDefaults.standard.string(forKey: "name")
         if name != nil {
             self.showUpperWheel = false
+//            self.showAdmin = false
             self.sender = name
             messagePublisher.send(self.sender + " Logged In")
+            self.disableMessaging = false
         }
       }.onReceive(recieptPublisher) { (_) in
          messagePublisher.send("Message Recieved")
       }.onReceive(pongPublisher) { (_) in
         print("FooBar")
         self.showAdmin = true
+      }.alert(isPresented:$showingAlert) {
+          Alert(title: Text("Can we talk?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Sure")) {
+            poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
+          }, secondaryButton: .cancel(Text("No")))
       }
+      
       if self.showAdmin {
         HStack {
           Button(action: {
-            self.users[self.index] = self.name
-            if self.index < self.users.count - 1 {
-              self.index = self.index + 1
-            } else {
-              self.index = 0
+            let finder = self.users.firstIndex(of: self.name)
+            print("finder ",finder)
+            if finder == nil {
+              self.users[self.index] = self.name
+              if self.index < self.users.count - 1 {
+                self.index = self.index + 1
+              } else {
+                self.index = 0
+              }
             }
             self.name = ""
           }) {
@@ -122,11 +145,14 @@ struct ContentView: View {
               self.name = ""
             }
           }, onCommit: {
-            self.users[self.index] = self.name
-            if self.index < self.users.count - 1 {
-              self.index = self.index + 1
-            } else {
-              self.index = 0
+            let finder = self.users.firstIndex(of: self.name)
+              if finder == nil {
+              self.users[self.index] = self.name
+              if self.index < self.users.count - 1 {
+                self.index = self.index + 1
+              } else {
+                self.index = 0
+              }
             }
             self.name = ""
           })
@@ -210,12 +236,6 @@ struct ContentView: View {
         self.alertMessage = data
         self.confirm = token
         self.showingAlert = true
-      }.alert(isPresented:$showingAlert) {
-          Alert(title: Text("Can we talk?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Sure")) {
-            poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
-            // save in private DB
-            
-          }, secondaryButton: .cancel(Text("No")))
       }.onReceive(enableMessaging, perform: { (data) in
         print("Granted")
         self.confirm = data
@@ -229,12 +249,11 @@ struct ContentView: View {
         print("Granted")
         self.confirm = data
         self.disableMessaging = false
-      }).onReceive(popPublisher) { (token) in
-        self.disableMessaging = false
-      }.disabled(disableLowerWheel)
+      }).disabled(disableLowerWheel)
       if showAdmin {
         Button(action: {
           print("saving to icloud")
+          cloud.seekAndTell(names: self.users)
         }) {
          Image(systemName: "icloud.and.arrow.up")
         }

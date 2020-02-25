@@ -42,12 +42,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
      let user = userInfo["user"] as? String
      let device = userInfo["device"] as? String
      if request == "request" {
+     DispatchQueue.main.async {
         print("token ",device)
         popPublisher.send((device!,user!))
+    }
      }
      if request == "grant" {
+     DispatchQueue.main.async {
         print("token ",token)
         enableMessaging.send(device!)
+      }
       }
     completionHandler(.newData)
   }
