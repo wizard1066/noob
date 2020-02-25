@@ -107,7 +107,7 @@ struct ContentView: View {
         let name = UserDefaults.standard.string(forKey: "name")
         if name != nil {
             self.showUpperWheel = false
-//            self.showAdmin = false
+            self.showAdmin = false
             self.sender = name
             messagePublisher.send(self.sender + " Logged In")
             self.disableMessaging = false
@@ -236,6 +236,7 @@ struct ContentView: View {
         self.alertMessage = data
         self.confirm = token
         self.showingAlert = true
+        self.disableMessaging = true
       }.onReceive(enableMessaging, perform: { (data) in
         print("Granted")
         self.confirm = data

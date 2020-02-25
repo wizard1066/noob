@@ -338,23 +338,7 @@ class Cloud: NSObject {
     publicDB?.add(modifyRecordsOperation)
   }
   
-  func saveToCloud(names:[CKRecord]) {
-    let saveRecordsOperation = CKModifyRecordsOperation()
-          saveRecordsOperation.recordsToSave = names
-          saveRecordsOperation.savePolicy = .allKeys
-          saveRecordsOperation.modifyRecordsCompletionBlock = { savedRecords,deletedRecordID, error in
-            if error != nil {
-              print("error",error)
-            } else {
-              print("saved ",savedRecords?.count)
-              DispatchQueue.main.async {
-                turnOffAdmin.send()
-                messagePublisher.send("Saved Names")
-              }
-            }
-          }
-          publicDB.add(saveRecordsOperation)
-  }
+
   
          
   func seekAndTell(names:[String])  {
@@ -391,12 +375,27 @@ class Cloud: NSObject {
                         }
                         print("merge ",boxes)
                         self!.saveToCloud(names: boxes)
-//                        DispatchQueue.main.async { turnOffAdmin.send() }
                       }
     }
   }
    
-
+  func saveToCloud(names:[CKRecord]) {
+    let saveRecordsOperation = CKModifyRecordsOperation()
+          saveRecordsOperation.recordsToSave = names
+          saveRecordsOperation.savePolicy = .allKeys
+          saveRecordsOperation.modifyRecordsCompletionBlock = { savedRecords,deletedRecordID, error in
+            if error != nil {
+              print("error",error)
+            } else {
+              print("saved ",savedRecords?.count)
+              DispatchQueue.main.async {
+                turnOffAdmin.send()
+                messagePublisher.send("Saved Names")
+              }
+            }
+          }
+          publicDB.add(saveRecordsOperation)
+  }
           
            //  func getPrivateK(name: String) {
             //    print("searching ",name)
