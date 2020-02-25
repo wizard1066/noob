@@ -109,7 +109,7 @@ struct ContentView: View {
             self.showUpperWheel = false
             self.showAdmin = false
             self.sender = name
-            messagePublisher.send(self.sender + " Logged In")
+            messagePublisher.send(self.sender + " Owner")
             self.disableMessaging = false
         }
       }.onReceive(recieptPublisher) { (_) in
@@ -192,6 +192,7 @@ struct ContentView: View {
          .onReceive(resetPublisher) { (_) in
           self.disableUpperWheel = false
           self.disableLowerWheel = false
+          self.showUpperWheel = true
         }
       }
       if !showAdmin {
@@ -254,7 +255,11 @@ struct ContentView: View {
       if showAdmin {
         Button(action: {
           print("saving to icloud")
-          cloud.seekAndTell(names: self.users)
+//          cloud.seekAndTell(names: self.users)
+          let alertHC = UIHostingController(rootView: PopUp())
+          alertHC.preferredContentSize = CGSize(width: 256, height: 256)
+          alertHC.modalPresentationStyle = .formSheet
+          UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
         }) {
          Image(systemName: "icloud.and.arrow.up")
         }
@@ -273,10 +278,22 @@ struct ContentView_Previews: PreviewProvider {
 }
 
 struct PopUp : View {
-  
+@State var code:String = ""
   var body : some View {
     VStack {
       Text("Hello World")
+      TextField("Nobody?", text: self.$code, onEditingChanged: { (editing) in
+        if editing {
+          self.code = ""
+        }
+      }, onCommit: {
+        print("code \(self.code)")
+      })
+      Button(action: {
+          UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
+      }) {
+          Text("Cancel")
+      }
     }
   }
 }
