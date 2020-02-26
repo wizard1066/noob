@@ -44,6 +44,7 @@ class ContentMode {
 
 struct ContentView: View {
 
+  
   @State var yourMessageHere = "" {
     didSet {
       DispatchQueue.main.async {
@@ -51,6 +52,8 @@ struct ContentView: View {
       }
     }
   }
+  
+  @State var code: String = ""
   
   @State var showUpperWheel = true
   // The kludge, This is very limited cause we need to reserve space in advance, should use binding
@@ -85,6 +88,7 @@ struct ContentView: View {
   @State var name:String = ""
   
   @State var showAdmin = true
+ 
 
   var body: some View {
     VStack {
@@ -114,12 +118,12 @@ struct ContentView: View {
         }
       }.onReceive(recieptPublisher) { (_) in
          messagePublisher.send("Message Recieved")
-      }.onReceive(pongPublisher) { (_) in
+      }.onReceive(pongPublisher) { ( secret ) in
         print("FooBar")
         self.showAdmin = true
       }.alert(isPresented:$showingAlert) {
           Alert(title: Text("Can we talk?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Sure")) {
-            poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
+            poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token, secret: nil)
           }, secondaryButton: .cancel(Text("No")))
       }
       
@@ -184,6 +188,7 @@ struct ContentView: View {
               let token = appDelegate.returnToken()
               var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
               let random = String(timestamp, radix: 16)
+              UserDefaults.standard.set(random, forKey: "secret")
               cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!, token: token, shared: random)
             }
             messagePublisher.send(self.sender + " Logged In")
@@ -201,7 +206,7 @@ struct ContentView: View {
         if self.confirm != nil {
           let appDelegate = UIApplication.shared.delegate as! AppDelegate
           let token = appDelegate.returnToken()
-          poster.postNotification(token: self.confirm!, message: self.yourMessageHere, type: "alert", request: "ok", device: token)
+          poster.postNotification(token: self.confirm!, message: self.yourMessageHere, type: "alert", request: "ok", device: token, secret: nil)
         }
       })
       .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -233,19 +238,23 @@ struct ContentView: View {
           let appDelegate = UIApplication.shared.delegate as! AppDelegate
           let token = appDelegate.returnToken()
           cloud.authRequest(auth:self.sender, name: self.sendingTo!, device: token)
-      }.onReceive(popPublisher) { (token,data) in
+      }.onReceive(popPublisher) { (token,data,secret) in
         self.alertMessage = data
         self.confirm = token
         self.showingAlert = true
         self.disableMessaging = true
-      }.onReceive(enableMessaging, perform: { (data) in
+        self.code = secret
+      }.onReceive(enableMessaging, perform: { (data, secret) in
         print("Granted")
+        
         self.confirm = data
         self.disableMessaging = false
         self.showingGrant = true
-        cloud.saveAuthRequest2PrivateDB(name: self.sendingTo, token: self.confirm!)
-      }).alert(isPresented:$showingGrant) {
-          Alert(title: Text("Go aHead"), message: Text("What is on your mind?"), dismissButton: .default(Text("Clear")))
+        self.code = secret
+//        cloud.saveAuthRequest2PrivateDB(name: self.sendingTo, token: self.confirm!)
+      })
+      .alert(isPresented:$showingGrant) {
+          Alert(title: Text(self.code), message: Text("What is on your mind?"), dismissButton: .default(Text("Clear")))
           
       }.onReceive(shortProtocol, perform: { (data) in
         print("Granted")
@@ -256,16 +265,17 @@ struct ContentView: View {
         Button(action: {
           print("saving to icloud")
 //          cloud.seekAndTell(names: self.users)
-          let alertHC = UIHostingController(rootView: PopUp())
+          let alertHC = UIHostingController(rootView: PopUp(code: self.$code))
           alertHC.preferredContentSize = CGSize(width: 256, height: 256)
           alertHC.modalPresentationStyle = .formSheet
+          
           UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
         }) {
          Image(systemName: "icloud.and.arrow.up")
         }
       }
       Text(message).onReceive(messagePublisher) { (data) in
-          self.message = data
+        self.message = data
       }
     }
   }
@@ -278,17 +288,18 @@ struct ContentView_Previews: PreviewProvider {
 }
 
 struct PopUp : View {
-@State var code:String = ""
+@Binding var code: String
+
   var body : some View {
     VStack {
-      Text("Hello World")
-      TextField("Nobody?", text: self.$code, onEditingChanged: { (editing) in
+      Text("and the Code is ...")
+      TextField("Code?", text: self.$code, onEditingChanged: { (editing) in
         if editing {
           self.code = ""
         }
       }, onCommit: {
         print("code \(self.code)")
-      })
+      }).frame(width: 128, height: 128, alignment: .center)
       Button(action: {
           UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
       }) {

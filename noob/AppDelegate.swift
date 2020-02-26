@@ -11,8 +11,8 @@ import UserNotifications
 import CloudKit
 import Combine
 
-let popPublisher = PassthroughSubject<(String,String), Never>()
-let enableMessaging = PassthroughSubject<(String), Never>()
+let popPublisher = PassthroughSubject<(String,String,String), Never>()
+let enableMessaging = PassthroughSubject<(String,String), Never>()
 
 var token:String!
 
@@ -35,24 +35,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   }
   
   func application(_ application: UIApplication,
-  didReceiveRemoteNotification userInfo: [AnyHashable : Any],
-     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-     debugPrint("Received: \(userInfo)")
-     let request = userInfo["request"] as? String
-     let user = userInfo["user"] as? String
-     let device = userInfo["device"] as? String
-     if request == "request" {
-     DispatchQueue.main.async {
+                   didReceiveRemoteNotification userInfo: [AnyHashable : Any],
+                   fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    debugPrint("Received: \(userInfo)")
+    let request = userInfo["request"] as? String
+    let user = userInfo["user"] as? String
+    let device = userInfo["device"] as? String
+    let secret = UserDefaults.standard.string(forKey: "secret")
+    // Lookup secret key in defaults
+    
+    if request == "request" {
+      DispatchQueue.main.async {
         print("token ",device)
-        popPublisher.send((device!,user!))
+        popPublisher.send((device!,user!,secret!))
+      }
     }
-     }
-     if request == "grant" {
-     DispatchQueue.main.async {
+    if request == "grant" {
+      DispatchQueue.main.async {
         print("token ",token)
-        enableMessaging.send(device!)
+        let secret = UserDefaults.standard.string(forKey: "secret")
+        enableMessaging.send((device!,secret!))
       }
-      }
+    }
     completionHandler(.newData)
   }
   

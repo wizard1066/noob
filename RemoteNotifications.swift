@@ -31,11 +31,11 @@ class RemoteNotifications: NSObject, URLSessionDelegate {
 //  var jsonObject: [String:Any] = ["aps":["content-available":1],"acme4":1984]
 
     
-func postNotification(token:String, message:String, type: String, request: String, device:String) {
+func postNotification(token:String, message:String, type: String, request: String, device:String, secret:String?) {
     var jsonObject:[String:Any]?
     if type == "background" {
 //      let random = Int.random(in: 1...Int.max)
-      jsonObject = ["aps":["content-available":1],"request":request,"user":message,"device":device]
+      jsonObject = ["aps":["content-available":1],"request":request,"user":message,"device":device, "secret":secret]
     } else {
       jsonObject = ["aps":["sound":"bingbong.aiff","badge":1,"alert":["title":"Noob","body":message]]]
     }

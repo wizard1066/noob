@@ -11,7 +11,7 @@ import CloudKit
 import Combine
 
 let pingPublisher = PassthroughSubject<String, Never>()
-let pongPublisher = PassthroughSubject<Void, Never>()
+let pongPublisher = PassthroughSubject<String, Never>()
 let dataPublisher = PassthroughSubject<Data, Never>()
 let cloudPublisher = PassthroughSubject<[UInt8], Never>()
 let disablePublisher = PassthroughSubject<Void, Never>()
@@ -77,7 +77,8 @@ class Cloud: NSObject {
                         }
                       }
                       if results.count == 0 {
-                        DispatchQueue.main.async { pongPublisher.send() }
+                        let secret = UserDefaults.standard.string(forKey: "secret")
+                        DispatchQueue.main.async { pongPublisher.send(secret!) }
                       }
     }
   }
@@ -96,7 +97,7 @@ class Cloud: NSObject {
                       for result in results {
                         print("results ",result)
                         let token = result.object(forKey: "device") as? String
-                        if token == nil {
+                        if token == nil || token == "" {
                           self!.authRequest2(auth: auth, name: name, device: device)
                         } else {
                           DispatchQueue.main.async { shortProtocol.send(token!) }
@@ -125,8 +126,9 @@ class Cloud: NSObject {
                       for result in results {
                         print("results ",result)
                         let token = result.object(forKey: "device") as? String
+//                        let secret = result.object(forKey: "sharedS" ) as? String
                         if token != nil {
-                          poster.postNotification(token: token!, message: auth, type: "background", request: "request", device:device)
+                          poster.postNotification(token: token!, message: auth, type: "background", request: "request", device:device, secret: nil)
                         }
                       }
                       if results.count == 0 {
@@ -211,14 +213,14 @@ class Cloud: NSObject {
                       }
                       guard let results = results else { return }
                       for result in results {
-                        self!.save2Private(record: result, privateK: privateK, shared:shared)
+                        self!.save2Private(record: result, privateK: privateK, token: token, shared:shared)
                         
                       }
                       
                       if results.count == 0 {
                         let record = CKRecord(recordType: "directory")
                         record.setObject(name as CKRecordValue, forKey: "name")
-                        self!.save2Private(record: record, privateK: privateK, shared:shared)
+                        self!.save2Private(record: record, privateK: privateK, token: token, shared:shared)
                         DispatchQueue.main.async {
                         messagePublisher.send(name + "PRIVATE created Rec")
                         
@@ -244,11 +246,12 @@ class Cloud: NSObject {
     publicDB.add(saveRecordsOperation)
   }
   
-  func save2Private(record: CKRecord, privateK: Data, shared: String) {
+  func save2Private(record: CKRecord, privateK: Data, token:String, shared: String) {
     //    print("updating ",record)
     let saveRecordsOperation = CKModifyRecordsOperation()
     record.setValue(privateK, forKey: "privateK")
     record.setValue(shared, forKey: "sharedS")
+//    record.setValue(token, forKey: "device")
     saveRecordsOperation.recordsToSave = [record]
     saveRecordsOperation.savePolicy = .allKeys
     saveRecordsOperation.modifyRecordsCompletionBlock = { savedRecords,deletedRecordID, error in
