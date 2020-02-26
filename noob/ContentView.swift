@@ -238,12 +238,12 @@ struct ContentView: View {
           let appDelegate = UIApplication.shared.delegate as! AppDelegate
           let token = appDelegate.returnToken()
           cloud.authRequest(auth:self.sender, name: self.sendingTo!, device: token)
-      }.onReceive(popPublisher) { (token,data,secret) in
+      }.onReceive(popPublisher) { (token,data) in
         self.alertMessage = data
         self.confirm = token
         self.showingAlert = true
         self.disableMessaging = true
-        self.code = secret
+        
       }.onReceive(enableMessaging, perform: { (data, secret) in
         print("Granted")
         

@@ -11,7 +11,7 @@ import UserNotifications
 import CloudKit
 import Combine
 
-let popPublisher = PassthroughSubject<(String,String,String), Never>()
+let popPublisher = PassthroughSubject<(String,String), Never>()
 let enableMessaging = PassthroughSubject<(String,String), Never>()
 
 var token:String!
@@ -41,19 +41,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     let request = userInfo["request"] as? String
     let user = userInfo["user"] as? String
     let device = userInfo["device"] as? String
-    let secret = UserDefaults.standard.string(forKey: "secret")
+    let secret = userInfo["secret"] as? String
+//    let secret = UserDefaults.standard.string(forKey: "secret")
     // Lookup secret key in defaults
     
     if request == "request" {
       DispatchQueue.main.async {
         print("token ",device)
-        popPublisher.send((device!,user!,secret!))
+        popPublisher.send((device!,user!))
       }
     }
     if request == "grant" {
       DispatchQueue.main.async {
         print("token ",token)
-        let secret = UserDefaults.standard.string(forKey: "secret")
+//        let secret = UserDefaults.standard.string(forKey: "secret")
         enableMessaging.send((device!,secret!))
       }
     }
