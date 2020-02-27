@@ -10,7 +10,7 @@ import Foundation
 import CloudKit
 import Combine
 
-let pingPublisher = PassthroughSubject<String, Never>()
+let pingPublisher = PassthroughSubject<[String], Never>()
 let pongPublisher = PassthroughSubject<Void, Never>()
 let dataPublisher = PassthroughSubject<Data, Never>()
 let cloudPublisher = PassthroughSubject<[UInt8], Never>()
@@ -66,15 +66,14 @@ class Cloud: NSObject {
                         return
                       }
                       guard let results = results else { return }
+                      var names:[String] = []
                       for result in results {
                         
                         let name = result.object(forKey: "name") as? String
-                        //                        var rex = ContentMode.userObject()
-                        //                        rex.name = name as? String
-                        //                        self!.contentModel.users.append(rex)
-                        DispatchQueue.main.async {
-                          pingPublisher.send(name!)
-                        }
+                        names.append(name!)
+                      }
+                      DispatchQueue.main.async {
+                        pingPublisher.send(names)
                       }
                       if results.count == 0 {
               
