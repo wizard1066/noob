@@ -11,7 +11,7 @@ import CloudKit
 import Combine
 
 let pingPublisher = PassthroughSubject<String, Never>()
-let pongPublisher = PassthroughSubject<String, Never>()
+let pongPublisher = PassthroughSubject<Void, Never>()
 let dataPublisher = PassthroughSubject<Data, Never>()
 let cloudPublisher = PassthroughSubject<[UInt8], Never>()
 let disablePublisher = PassthroughSubject<Void, Never>()
@@ -23,7 +23,7 @@ class Cloud: NSObject {
   
   var publicDB:CKDatabase!
   var privateDB: CKDatabase!
-  var contentModel = ContentMode()
+//  var contentModel = ContentMode()
   
   override init() {
     super.init()
@@ -77,8 +77,8 @@ class Cloud: NSObject {
                         }
                       }
                       if results.count == 0 {
-                        let secret = UserDefaults.standard.string(forKey: "secret")
-                        DispatchQueue.main.async { pongPublisher.send(secret!) }
+              
+                        DispatchQueue.main.async { pongPublisher.send() }
                       }
     }
   }
@@ -128,7 +128,7 @@ class Cloud: NSObject {
                         let token = result.object(forKey: "device") as? String
 //                        let secret = result.object(forKey: "sharedS" ) as? String
                         if token != nil {
-                          poster.postNotification(token: token!, message: auth, type: "background", request: "request", device:device, secret: nil)
+                          poster.postNotification(token: token!, message: auth, type: "background", request: "request", device:device)
                         }
                       }
                       if results.count == 0 {
