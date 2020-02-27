@@ -109,7 +109,7 @@ struct ContentView: View {
           self.disableMessaging = false
         }
       }.onReceive(recieptPublisher) { (_) in
-        messagePublisher.send("MessaFge Recieved")
+        messagePublisher.send("Message Recieved")
       }.onReceive(pongPublisher) { ( _ ) in
         self.showAdmin = true
       }.alert(isPresented:$showingAlert) {
