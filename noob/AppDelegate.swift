@@ -50,11 +50,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   }
   
   func setCategories() {
-    let acceptAction = UNNotificationAction(identifier: "accept", title: "Accept", options: [])
+    let acceptAction = UNNotificationAction(identifier: "accept", title: "Accept", options: [.foreground])
     let cancelAction = UNNotificationAction(identifier: "deny", title: "Deny", options: [.destructive])
-    let acceptCategory = UNNotificationCategory(identifier: "noobCategory", actions: [acceptAction], intentIdentifiers: ["accept.Category"], options: [])
-    let cancelCategory = UNNotificationCategory(identifier: "cancelCategory", actions: [cancelAction], intentIdentifiers: ["cancel.Category"], options: [])
-    UNUserNotificationCenter.current().setNotificationCategories([acceptCategory,cancelCategory])
+    let noobCategory = UNNotificationCategory(identifier: "noobCategory", actions: [acceptAction,cancelAction], intentIdentifiers: [], options: [])
+  
+    UNUserNotificationCenter.current().setNotificationCategories([noobCategory])
   }
   
   func application(_ application: UIApplication,
