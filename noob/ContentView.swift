@@ -236,7 +236,10 @@ struct ContentView: View {
           self.alertMessage = data
           self.confirm = token
           self.showingAlert = true
+//          let notify = LocalNotifications()
+//          notify.doNotification()
           self.disableMessaging = true
+          
         }.onReceive(enableMessaging, perform: { (data, secret) in
           print("Granted")
           
