@@ -42,8 +42,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
       let device = userInfo["device"] as? String
       poster.postNotification(token: device!, message: "Granted", type: "background", request: "grant",device:token)
     }
-    if action == "cancel" {
+    if action == "later" {
       UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [request.identifier])
+      // More code in RemoteNotificiation & ContentView.swift needed
+    }
+    if action == "deny" {
+      // Block the user
     }
     completionHandler()
   // code
@@ -51,8 +55,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   
   func setCategories() {
     let acceptAction = UNNotificationAction(identifier: "accept", title: "Accept", options: [.foreground])
-    let cancelAction = UNNotificationAction(identifier: "deny", title: "Deny", options: [.destructive])
-    let noobCategory = UNNotificationCategory(identifier: "noobCategory", actions: [acceptAction,cancelAction], intentIdentifiers: [], options: [])
+    let laterAction = UNNotificationAction(identifier: "later", title: "Later", options: [])
+    let denyAction = UNNotificationAction(identifier: "deny", title: "Deny", options: [.destructive])
+    let noobCategory = UNNotificationCategory(identifier: "noobCategory", actions: [acceptAction,laterAction,denyAction], intentIdentifiers: [], options: [])
   
     UNUserNotificationCenter.current().setNotificationCategories([noobCategory])
   }
