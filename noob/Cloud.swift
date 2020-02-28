@@ -127,7 +127,7 @@ class Cloud: NSObject {
                         let token = result.object(forKey: "device") as? String
 //                        let secret = result.object(forKey: "sharedS" ) as? String
                         if token != nil {
-                          poster.postNotification(token: token!, message: auth, type: "background", request: "request", device:device)
+                          poster.postNotification(token: token!, message: auth, type: "alert", request: "request", device:device)
                         }
                       }
                       if results.count == 0 {

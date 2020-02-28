@@ -31,7 +31,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   
   func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
     print("reponse ",response.notification.request.content.subtitle)
+    
+    let action = response.actionIdentifier
+    let request = response.notification.request
+    let content = request.content.mutableCopy() as! UNMutableNotificationContent
+    
+    if action == "accept" {
+      print("content ",request.content.userInfo)
+      let userInfo = request.content.userInfo["aps"]! as! Dictionary<String, Any>
+      let device = userInfo["device"] as? String
+      poster.postNotification(token: device!, message: "Granted", type: "background", request: "grant",device:token)
+    }
+    if action == "cancel" {
+      UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [request.identifier])
+    }
+    completionHandler()
   // code
+  }
+  
+  func setCategories() {
+    let acceptAction = UNNotificationAction(identifier: "accept", title: "Accept", options: [])
+    let cancelAction = UNNotificationAction(identifier: "deny", title: "Deny", options: [.destructive])
+    let acceptCategory = UNNotificationCategory(identifier: "noobCategory", actions: [acceptAction], intentIdentifiers: ["accept.Category"], options: [])
+    let cancelCategory = UNNotificationCategory(identifier: "cancelCategory", actions: [cancelAction], intentIdentifiers: ["cancel.Category"], options: [])
+    UNUserNotificationCenter.current().setNotificationCategories([acceptCategory,cancelCategory])
   }
   
   func application(_ application: UIApplication,
@@ -39,16 +62,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
     debugPrint("Received: \(userInfo)")
     let request = userInfo["request"] as? String
-    let user = userInfo["user"] as? String
+//    let user = userInfo["user"] as? String
     let device = userInfo["device"] as? String
     let secret = userInfo["secret"] as? String
     
-    if request == "request" {
-      DispatchQueue.main.async {
-        print("token ",device)
-        popPublisher.send((device!,user!))
-      }
-    }
+//    if request == "request" {
+//      DispatchQueue.main.async {
+//        print("token ",device)
+//        popPublisher.send((device!,user!))
+//      }
+//    }
     if request == "grant" {
       DispatchQueue.main.async {
         print("token ",token)
@@ -72,7 +95,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     // Override point for customization after application launch.
     
     registerForNotifications()
-    
+    setCategories()
     return true
   }
   
@@ -102,6 +125,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         }
       }
     }
+    
   }
 
   

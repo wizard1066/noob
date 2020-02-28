@@ -34,11 +34,17 @@ class RemoteNotifications: NSObject, URLSessionDelegate {
 func postNotification(token:String, message:String, type: String, request: String, device:String) {
     var jsonObject:[String:Any]?
     if type == "background" {
-//      let random = Int.random(in: 1...Int.max)
-      let secret = UserDefaults.standard.string(forKey: "secret")
-      jsonObject = ["aps":["content-available":1],"request":request,"user":message,"device":device, "secret":secret]
-    } else {
-      jsonObject = ["aps":["sound":"bingbong.aiff","badge":1,"alert":["title":"Noob","body":message]]]
+        let secret = UserDefaults.standard.string(forKey: "secret")
+        jsonObject = ["aps":["content-available":1],"request":request,"user":message,"device":device, "secret":secret]
+    }
+    if type == "alert" {
+      if request == "ok" {
+        jsonObject = ["aps":["sound":"bingbong.aiff","badge":1,"alert":["title":"Noob","body":message]]]
+      }
+      if request == "request" {
+        let secret = UserDefaults.standard.string(forKey: "secret")
+        jsonObject = ["aps":["sound":"bingbong.aiff","badge":1,"category":"noobCategory","alert":["title":"Noob","body":message],"request":request,"user":message,"device":device, "secret":secret]]
+      }
     }
     
     print("token sending ",token)
