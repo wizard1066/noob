@@ -143,7 +143,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
   
   func registerCategories() {
     let acceptAction = UNNotificationAction(identifier: "accept", title: "Accept", options: [.foreground])
-    let laterAction = UNNotificationAction(identifier: "later", title: "Later", options: [])
+    let laterAction = UNNotificationAction(identifier: "later", title: "Later", options: [.foreground])
     let denyAction = UNNotificationAction(identifier: "deny", title: "Deny", options: [.destructive])
     let noobCategory = UNNotificationCategory(identifier: "noobCategory", actions: [acceptAction,laterAction,denyAction], intentIdentifiers: [], options: [])
   

@@ -113,9 +113,7 @@ struct ContentView: View {
       }.onReceive(pongPublisher) { ( _ ) in
         self.showAdmin = true
       }.alert(isPresented:$showingAlert) {
-        Alert(title: Text("Talk Later?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Ok")) {
-      //    poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
-          }, secondaryButton: .cancel(Text("No")))
+          Alert(title: Text("Not now"), message: Text("Talk Later"), dismissButton: .default(Text("Ok")))
       }
       
       if self.showAdmin {
