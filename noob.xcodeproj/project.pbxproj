@@ -21,9 +21,8 @@
 		7BAAFE6B23FAC49800B275CE /* RSA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAAFE6A23FAC49800B275CE /* RSA.swift */; };
 		7BD7F9E6240928C600FB00BE /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BD7F9E5240928C600FB00BE /* UserNotifications.framework */; };
 		7BD7F9E8240928C600FB00BE /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BD7F9E7240928C600FB00BE /* UserNotificationsUI.framework */; };
-		7BD7F9EB240928C600FB00BE /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BD7F9EA240928C600FB00BE /* NotificationViewController.swift */; };
 		7BD7F9EE240928C600FB00BE /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7BD7F9EC240928C600FB00BE /* MainInterface.storyboard */; };
-		7BD7F9F2240928C600FB00BE /* NoobContentExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 7BD7F9E4240928C600FB00BE /* NoobContentExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7BE45ABD240C0F5000D3FF68 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BD7F9EA240928C600FB00BE /* NotificationViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,7 +42,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				7BD7F9F2240928C600FB00BE /* NoobContentExtension.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -283,7 +281,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7BD7F9EB240928C600FB00BE /* NotificationViewController.swift in Sources */,
+				7BE45ABD240C0F5000D3FF68 /* NotificationViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

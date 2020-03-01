@@ -23,10 +23,22 @@ let shortProtocol = PassthroughSubject<String, Never>()
 let turnOffAdmin = PassthroughSubject<Void, Never>()
 let putemthruPublisher = PassthroughSubject<Void, Never>()
 
+struct rex {
+  var name: String!
+  var group: String!
+  var secret: String!
+}
+
+class newUsers: ObservableObject {
+  var rexes:[rex] = []
+}
+
 
 class Users: ObservableObject {
   //  @Published var selected4 = 0
   var name:[String] = []
+  var group:[String] = []
+  var secret:[String] = []
 }
 
 struct ContentView: View {
@@ -73,8 +85,12 @@ struct ContentView: View {
   @State var display = true
   
   @State var people = Users()
+  @State var peeps = newUsers()
   @State var selected3 = 0
   @State var selected4 = 0
+  
+  @State var group:String = ""
+  @State var secret:String = ""
   
   var body: some View {
     VStack {
@@ -117,59 +133,79 @@ struct ContentView: View {
       }
       
       if self.showAdmin {
-        HStack {
+        
+        VStack {
           Button(action: {
-            let finder = self.people.name.firstIndex(of: self.name)
-            if finder == nil {
+//            let finder = self.people.name.firstIndex(of: self.name)
+            let finder = self.peeps.rexes.filter{$0.name == self.name}
+            if finder.count == 0 {
 //              self.users[self.index] = self.name
               self.display = false
-              self.people.name.append(self.name)
+              
+              let rec = rex(name: self.name, group: self.group, secret: self.secret)
+              self.peeps.rexes.append(rec)
+              
               DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 self.display = true
               }
             }
             self.name = ""
+            self.group = ""
+            self.secret = ""
           }) {
             Image(systemName: "plus.circle")
           }
-          TextField("Nobody?", text: self.$name, onEditingChanged: { (editing) in
-            if editing {
-              self.name = ""
-            }
-          }, onCommit: {
-            let finder = self.people.name.firstIndex(of: self.name)
-            if finder == nil {
-              self.display = false
-              self.people.name.append(self.name)
-              DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self.display = true
+          TextField("Group?", text: $group)
+          .multilineTextAlignment(.center)
+          .textFieldStyle(RoundedBorderTextFieldStyle())
+            TextField("User?", text: self.$name, onEditingChanged: { (editing) in
+              if editing {
+                self.name = ""
               }
-            }
-            self.name = ""
-          })
+            }, onCommit: {
+              print("ok")
+              }
+            )
+            .multilineTextAlignment(.center)
+            .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+          TextField("Secret?", text: $secret)
+          .multilineTextAlignment(.center)
+          .textFieldStyle(RoundedBorderTextFieldStyle())
           Button(action: {
-            let finder = self.people.name.firstIndex(of: self.name)
+//            let finder = self.people.name.firstIndex(of: self.name)
+//            let finder = self.peeps.rexes.first(of: self.name)
+//            let finder = self.peeps.rexes.filter{$0.name == self.name}
+            let finder = self.peeps.rexes.firstIndex(where: {$0.name == self.name})
+            if finder != nil {
+              self.peeps.rexes.remove(at: finder!)
+            }
             self.display = false
-            self.people.name.remove(at: finder!)
+            // this removes the user + group + secret since it is a struct
+//            self.people.name.remove(at: finder!)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
               self.display = true
             }
           }) {
             Image(systemName: "minus.circle")
           }
+        
         }.padding()
       }
       if showUpperWheel {
+        
         if self.display {
           Picker(selection: $selected3, label: Text("")) {
-            ForEach(0 ..< self.people.name.count) {
-              Text(self.people.name[$0])
+            ForEach(0 ..< self.peeps.rexes.count) {dix in
+              Text(self.peeps.rexes[dix].name)
             }
           }.pickerStyle(WheelPickerStyle())
             .padding()
             .onTapGesture {
               // *** 1ST ***
-              self.sender = self.people.name[self.selected3]
+//              self.sender = self.people.name[self.selected3]
+              self.sender = self.peeps.rexes[self.selected3].name
+
               UserDefaults.standard.set(self.sender, forKey: "name")
               let success = rsa.generateKeyPair(keySize: 2048, privateTag: "ch.cqd.noob", publicTag: "ch.cqd.noob")
               if success {
@@ -211,11 +247,17 @@ struct ContentView: View {
         }
       }
       if self.display {
-        Picker(selection: $selected4, label: Text("")) {
-          ForEach(0 ..< self.people.name.count) {
-            Text(self.people.name[$0])
+        Picker(selection: $selected3, label: Text("")) {
+          ForEach(0 ..< self.peeps.rexes.count) {dix in
+            Text(self.peeps.rexes[dix].name)
           }
-        }.pickerStyle(WheelPickerStyle())
+        }
+//        Picker(selection: $selected4, label: Text("")) {
+//          ForEach(0 ..< self.people.name.count) {
+//            Text(self.people.name[$0])
+//          }
+//        }
+        .pickerStyle(WheelPickerStyle())
           .padding()
           .onReceive(pingPublisher) { (data) in
             self.display = false
@@ -226,7 +268,7 @@ struct ContentView: View {
         }
         .onTapGesture {
           // *** 2ND ***
-          self.sendingTo = self.people.name[self.selected4]
+          self.sendingTo = self.peeps.rexes[self.selected4].name
           let appDelegate = UIApplication.shared.delegate as! AppDelegate
           let token = appDelegate.returnToken()
           cloud.authRequest(auth:self.sender, name: self.sendingTo!, device: token)
@@ -264,6 +306,7 @@ struct ContentView: View {
       if showAdmin {
         Button(action: {
           print("saving to icloud")
+          // This is floored cause you can add multiple names BEFORE saving
           cloud.seekAndTell(names: self.people.name)
         }) {
           Image(systemName: "icloud.and.arrow.up")

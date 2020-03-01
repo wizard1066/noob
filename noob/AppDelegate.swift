@@ -139,6 +139,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         poster.postNotification(token: device!, message: "Later", type: "background", request: "later",device:token)
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [request.identifier])
     }
+    completionHandler()
   }
   
   func registerCategories() {
