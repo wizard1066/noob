@@ -45,6 +45,10 @@ func postNotification(token:String, message:String, type: String, request: Strin
         let secret = UserDefaults.standard.string(forKey: "secret")
         jsonObject = ["aps":["sound":"bingbong.aiff","badge":1,"category":"noobCategory","alert":["title":"Noob","body":message],"request":request,"user":message,"device":device, "secret":secret]]
       }
+      if request == "later" {
+        let secret = UserDefaults.standard.string(forKey: "secret")
+        jsonObject = ["aps":["sound":"bingbong.aiff","badge":1,"category":"noobCategory","alert":["title":"Noob","body":message],"request":request,"user":message,"device":device, "secret":secret]]
+      }
     }
     
     print("token sending ",token)

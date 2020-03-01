@@ -113,8 +113,8 @@ struct ContentView: View {
       }.onReceive(pongPublisher) { ( _ ) in
         self.showAdmin = true
       }.alert(isPresented:$showingAlert) {
-        Alert(title: Text("Can we talk?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Sure")) {
-          poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
+        Alert(title: Text("Talk Later?"), message: Text("\(alertMessage!)"), primaryButton: .destructive(Text("Ok")) {
+      //    poster.postNotification(token: self.confirm!, message: "Granted", type: "background", request: "grant",device:token)
           }, secondaryButton: .cancel(Text("No")))
       }
       

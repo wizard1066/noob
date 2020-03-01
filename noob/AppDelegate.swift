@@ -40,6 +40,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         enableMessaging.send((device!,secret!))
       }
     }
+    if request == "later" {
+      DispatchQueue.main.async {
+        popPublisher.send(("no","yes"))
+      }
+    }
     completionHandler(.newData)
   }
   
@@ -52,7 +57,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     registerForNotifications()
-    setCategories()
+    registerCategories()
     return true
   }
   
@@ -115,6 +120,12 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     let request = response.notification.request
     let content = request.content.mutableCopy() as! UNMutableNotificationContent
     
+    if action == "deny" {
+      // Block the user/ignore
+      completionHandler()
+      return
+    }
+    
     if action == "accept" {
       print("content ",request.content.userInfo)
       let userInfo = request.content.userInfo["aps"]! as! Dictionary<String, Any>
@@ -122,16 +133,15 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
       poster.postNotification(token: device!, message: "Granted", type: "background", request: "grant",device:token)
     }
     if action == "later" {
-      UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [request.identifier])
-      // More code in RemoteNotificiation & ContentView.swift needed
+        let userInfo = request.content.userInfo["aps"]! as! Dictionary<String, Any>
+        let device = userInfo["device"] as? String
+        let user = userInfo["user"] as? String
+        poster.postNotification(token: device!, message: "Later", type: "background", request: "later",device:token)
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [request.identifier])
     }
-    if action == "deny" {
-      // Block the user
-    }
-    completionHandler()
   }
   
-  func setCategories() {
+  func registerCategories() {
     let acceptAction = UNNotificationAction(identifier: "accept", title: "Accept", options: [.foreground])
     let laterAction = UNNotificationAction(identifier: "later", title: "Later", options: [])
     let denyAction = UNNotificationAction(identifier: "deny", title: "Deny", options: [.destructive])
