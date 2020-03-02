@@ -10,7 +10,7 @@ import Foundation
 import CloudKit
 import Combine
 
-let pingPublisher = PassthroughSubject<[String], Never>()
+let pingPublisher = PassthroughSubject<[rex], Never>()
 let pongPublisher = PassthroughSubject<Void, Never>()
 let dataPublisher = PassthroughSubject<Data, Never>()
 let cloudPublisher = PassthroughSubject<[UInt8], Never>()
@@ -54,6 +54,7 @@ class Cloud: NSObject {
 //  }
   
   func getDirectory() {
+    var rexes:[rex] = []
     let predicate = NSPredicate(value: true)
     let query = CKQuery(recordType: "directory", predicate: predicate)
     publicDB.perform(query,
@@ -70,10 +71,13 @@ class Cloud: NSObject {
                       for result in results {
                         
                         let name = result.object(forKey: "name") as? String
-                        names.append(name!)
+                        let secret = result.object(forKey: "sharedS") as? String
+                        let group = result.object(forKey: "group") as? String
+                        let newRex = rex(name: name, group: group, secret: secret)
+                        rexes.append(newRex)
                       }
                       DispatchQueue.main.async {
-                        pingPublisher.send(names)
+                        pingPublisher.send(rexes)
                       }
                       if results.count == 0 {
               
@@ -341,7 +345,20 @@ class Cloud: NSObject {
   }
   
 
-  
+  func saver(rexes:[rex]) {
+    if rexes.count > 0 {
+      var boxes:[CKRecord] = []
+      for index in 0 ..< rexes.count {
+        let record = CKRecord(recordType: "directory")
+        record.setObject(rexes[index].name as __CKRecordObjCValue, forKey: "name")
+        record.setObject(rexes[index].group as __CKRecordObjCValue, forKey: "group")
+        record.setObject(rexes[index].secret as __CKRecordObjCValue, forKey: "sharedS")
+        boxes.append(record)
+      }
+      print("merge ",boxes)
+      self.saveToCloud(names: boxes)
+    }
+  }
          
   func seekAndTell(names:[String])  {
     var namesCopy = names

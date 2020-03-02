@@ -34,12 +34,12 @@ class newUsers: ObservableObject {
 }
 
 
-class Users: ObservableObject {
-  //  @Published var selected4 = 0
-  var name:[String] = []
-  var group:[String] = []
-  var secret:[String] = []
-}
+//class Users: ObservableObject {
+//  //  @Published var selected4 = 0
+//  var name:[String] = []
+//  var group:[String] = []
+//  var secret:[String] = []
+//}
 
 struct ContentView: View {
   
@@ -84,7 +84,7 @@ struct ContentView: View {
   @State var showAdmin = true
   @State var display = true
   
-  @State var people = Users()
+//  @State var people = Users()
   @State var peeps = newUsers()
   @State var selected3 = 0
   @State var selected4 = 0
@@ -103,7 +103,8 @@ struct ContentView: View {
       if showAdmin {
         Button(action: {
           print("saving to icloud")
-          cloud.seekAndTell(names: self.people.name)
+//          cloud.seekAndTell(names: self.people.name)
+          cloud.saver(rexes:self.peeps.rexes)
         }) {
           Image(systemName: "icloud.and.arrow.up")
         }.onReceive(turnOffAdmin) { (_) in
@@ -143,6 +144,7 @@ struct ContentView: View {
               self.display = false
               
               let rec = rex(name: self.name, group: self.group, secret: self.secret)
+              UserDefaults.standard.set(self.secret, forKey: "secret")
               self.peeps.rexes.append(rec)
               
               DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -213,10 +215,10 @@ struct ContentView: View {
                 let publicK = rsa.getPublicKey()
                 let appDelegate = UIApplication.shared.delegate as! AppDelegate
                 let token = appDelegate.returnToken()
-                var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
-                let random = String(timestamp, radix: 16)
-                UserDefaults.standard.set(random, forKey: "secret")
-                cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!, token: token, shared: random)
+//                var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
+//                let random = String(timestamp, radix: 16)
+                let secret = UserDefaults.standard.string(forKey: "secret")
+                cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!, token: token, shared: secret!)
               }
               messagePublisher.send(self.sender + " Logged In")
 //              self.disableUpperWheel = true
@@ -247,21 +249,16 @@ struct ContentView: View {
         }
       }
       if self.display {
-        Picker(selection: $selected3, label: Text("")) {
+        Picker(selection: $selected4, label: Text("")) {
           ForEach(0 ..< self.peeps.rexes.count) {dix in
             Text(self.peeps.rexes[dix].name)
           }
         }
-//        Picker(selection: $selected4, label: Text("")) {
-//          ForEach(0 ..< self.people.name.count) {
-//            Text(self.people.name[$0])
-//          }
-//        }
         .pickerStyle(WheelPickerStyle())
           .padding()
           .onReceive(pingPublisher) { (data) in
             self.display = false
-            self.people.name = data
+            self.peeps.rexes = data
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
               self.display = true
             }
@@ -307,7 +304,8 @@ struct ContentView: View {
         Button(action: {
           print("saving to icloud")
           // This is floored cause you can add multiple names BEFORE saving
-          cloud.seekAndTell(names: self.people.name)
+//          cloud.seekAndTell(names: self.people.name)
+          cloud.saver(rexes:self.peeps.rexes)
         }) {
           Image(systemName: "icloud.and.arrow.up")
         }
