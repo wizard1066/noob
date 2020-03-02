@@ -24,6 +24,7 @@ let turnOffAdmin = PassthroughSubject<Void, Never>()
 let putemthruPublisher = PassthroughSubject<Void, Never>()
 
 struct rex {
+  var id: CKRecord.ID?
   var name: String!
   var group: String!
   var secret: String!
@@ -103,7 +104,6 @@ struct ContentView: View {
       if showAdmin {
         Button(action: {
           print("saving to icloud")
-//          cloud.seekAndTell(names: self.people.name)
           cloud.saver(rexes:self.peeps.rexes)
         }) {
           Image(systemName: "icloud.and.arrow.up")
@@ -137,10 +137,8 @@ struct ContentView: View {
         
         VStack {
           Button(action: {
-//            let finder = self.people.name.firstIndex(of: self.name)
             let finder = self.peeps.rexes.filter{$0.name == self.name}
             if finder.count == 0 {
-//              self.users[self.index] = self.name
               self.display = false
               
               let rec = rex(name: self.name, group: self.group, secret: self.secret)
@@ -175,16 +173,13 @@ struct ContentView: View {
           .multilineTextAlignment(.center)
           .textFieldStyle(RoundedBorderTextFieldStyle())
           Button(action: {
-//            let finder = self.people.name.firstIndex(of: self.name)
-//            let finder = self.peeps.rexes.first(of: self.name)
-//            let finder = self.peeps.rexes.filter{$0.name == self.name}
             let finder = self.peeps.rexes.firstIndex(where: {$0.name == self.name})
             if finder != nil {
+              // this removes the user + group + secret since it is a struct
               self.peeps.rexes.remove(at: finder!)
             }
             self.display = false
-            // this removes the user + group + secret since it is a struct
-//            self.people.name.remove(at: finder!)
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
               self.display = true
             }
@@ -205,7 +200,6 @@ struct ContentView: View {
             .padding()
             .onTapGesture {
               // *** 1ST ***
-//              self.sender = self.people.name[self.selected3]
               self.sender = self.peeps.rexes[self.selected3].name
 
               UserDefaults.standard.set(self.sender, forKey: "name")
@@ -215,9 +209,11 @@ struct ContentView: View {
                 let publicK = rsa.getPublicKey()
                 let appDelegate = UIApplication.shared.delegate as! AppDelegate
                 let token = appDelegate.returnToken()
-//                var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
-//                let random = String(timestamp, radix: 16)
-                let secret = UserDefaults.standard.string(forKey: "secret")
+                var secret = UserDefaults.standard.string(forKey: "secret")
+                if secret == nil {
+                  var timestamp = UInt64(floor(Date().timeIntervalSince1970 * 1000))
+                  secret = String(timestamp, radix: 16)
+                }
                 cloud.searchAndUpdate(name: self.sender, publicK: publicK!, privateK: privateK!, token: token, shared: secret!)
               }
               messagePublisher.send(self.sender + " Logged In")
@@ -273,8 +269,6 @@ struct ContentView: View {
           self.alertMessage = data
           self.confirm = token
           self.showingAlert = true
-//          let notify = LocalNotifications()
-//          notify.doNotification()
           self.disableMessaging = true
           
         }.onReceive(enableMessaging, perform: { (data, secret) in
@@ -299,12 +293,14 @@ struct ContentView: View {
             self.confirm = data
             self.disableMessaging = false
           }).disabled(disableLowerWheel)
+          .onLongPressGesture {
+            cloud.getDirectory()
+          }
       }
       if showAdmin {
         Button(action: {
           print("saving to icloud")
-          // This is floored cause you can add multiple names BEFORE saving
-//          cloud.seekAndTell(names: self.people.name)
+          // floored since it will save the entire database everytime ...
           cloud.saver(rexes:self.peeps.rexes)
         }) {
           Image(systemName: "icloud.and.arrow.up")

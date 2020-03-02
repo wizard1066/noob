@@ -73,7 +73,8 @@ class Cloud: NSObject {
                         let name = result.object(forKey: "name") as? String
                         let secret = result.object(forKey: "sharedS") as? String
                         let group = result.object(forKey: "group") as? String
-                        let newRex = rex(name: name, group: group, secret: secret)
+                        let recordID = result.recordID
+                        let newRex = rex(id: recordID, name: name, group: group, secret: secret)
                         rexes.append(newRex)
                       }
                       DispatchQueue.main.async {
@@ -349,11 +350,16 @@ class Cloud: NSObject {
     if rexes.count > 0 {
       var boxes:[CKRecord] = []
       for index in 0 ..< rexes.count {
-        let record = CKRecord(recordType: "directory")
-        record.setObject(rexes[index].name as __CKRecordObjCValue, forKey: "name")
-        record.setObject(rexes[index].group as __CKRecordObjCValue, forKey: "group")
-        record.setObject(rexes[index].secret as __CKRecordObjCValue, forKey: "sharedS")
-        boxes.append(record)
+        var record:CKRecord?
+        if rexes[index].id == nil {
+          record = CKRecord(recordType: "directory")
+        } else {
+          record = CKRecord(recordType: "directory", recordID: rexes[index].id!)
+        }
+        record!.setObject(rexes[index].name as __CKRecordObjCValue, forKey: "name")
+        record!.setObject(rexes[index].group as __CKRecordObjCValue, forKey: "group")
+        record!.setObject(rexes[index].secret as __CKRecordObjCValue, forKey: "sharedS")
+        boxes.append(record!)
       }
       print("merge ",boxes)
       self.saveToCloud(names: boxes)
